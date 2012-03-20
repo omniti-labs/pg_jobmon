@@ -14,8 +14,8 @@ declare
 begin
 
     -- Generic check for jobs without special monitoring. Should error on 3 failures
-    FOR v_job_errors IN SELECT c.job_name FROM job_check c, job_status s 
-        WHERE c.job_name <> s.job_name GROUP BY c.job_name HAVING count(*) > 2 
+    FOR v_job_errors IN SELECT c.job_name FROM otools.check_jobs c 
+        WHERE c.job_name NOT IN (select s.job_name from otools.check_job_status s where c.job_name <> s.job_name) GROUP BY c.job_name HAVING count(*) > 2
     LOOP
         v_trouble[v_count] := v_job_errors.job_name;
         v_count := v_count+1;

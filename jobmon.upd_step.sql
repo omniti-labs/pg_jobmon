@@ -1,6 +1,6 @@
 SET search_path = jobmon, pg_catalog;
 
-CREATE FUNCTION _backend_upd_step(p_job_id integer, p_step_id integer, p_status text, p_message text) RETURNS integer
+CREATE FUNCTION _autonomous_upd_step(p_job_id integer, p_step_id integer, p_status text, p_message text) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -24,7 +24,7 @@ CREATE FUNCTION upd_step(p_job_id integer, p_step_id integer, p_status text, p_m
 DECLARE
     v_remote_query TEXT;
 BEGIN
-    v_remote_query := 'SELECT jobmon._backend_upd_step ('||
+    v_remote_query := 'SELECT jobmon._autonomous_upd_step ('||
     p_job_id || ',' ||
     p_step_id || ',' ||
     quote_literal(p_status) || ',' ||

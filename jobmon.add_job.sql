@@ -1,6 +1,6 @@
 SET search_path = jobmon, pg_catalog;
 
-CREATE OR REPLACE FUNCTION _backend_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS integer
+CREATE OR REPLACE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -23,7 +23,7 @@ DECLARE
     v_job_id INTEGER;
     v_remote_query TEXT;
 BEGIN
-    v_remote_query := 'SELECT jobmon._backend_add_job (' ||
+    v_remote_query := 'SELECT jobmon._autonomous_add_job (' ||
         quote_literal(current_user) || ',' ||
         quote_literal(p_job_name) || ',' ||
         pg_backend_pid() || ')';

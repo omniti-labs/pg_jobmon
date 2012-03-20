@@ -1,6 +1,6 @@
 SET search_path = jobmon, pg_catalog;
 
-CREATE FUNCTION _backend_close_job(p_job_id integer) RETURNS integer
+CREATE FUNCTION _autonomous_close_job(p_job_id integer) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -22,7 +22,7 @@ CREATE FUNCTION close_job(p_job_id integer) RETURNS void
 DECLARE
     v_remote_query TEXT;
 BEGIN
-    v_remote_query := 'SELECT jobmon._backend_close_job('||p_job_id||')'; 
+    v_remote_query := 'SELECT jobmon._autonomous_close_job('||p_job_id||')'; 
 
     EXECUTE 'SELECT devnull FROM dblink.dblink(''dbname=' || current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  

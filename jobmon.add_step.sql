@@ -1,6 +1,6 @@
 SET search_path = jobmon, pg_catalog;
 
-CREATE FUNCTION _backend_add_step(p_job_id integer, p_action text) RETURNS integer
+CREATE FUNCTION _autonomous_add_step(p_job_id integer, p_action text) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -23,7 +23,7 @@ DECLARE
     v_step_id INTEGER;
     v_remote_query TEXT;
 BEGIN
-    v_remote_query := 'SELECT jobmon._backend_add_step (' ||
+    v_remote_query := 'SELECT jobmon._autonomous_add_step (' ||
         p_job_id || ',' ||
         quote_literal(p_action) || ')';
 
