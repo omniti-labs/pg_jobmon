@@ -1,72 +1,3 @@
--- ########## pg_jobmon extension table definitions ##########
--- See about making these into partitioned tables by start_time
-CREATE TABLE job_log (
-    job_id bigint NOT NULL,
-    owner text NOT NULL,
-    job_name text NOT NULL,
-    start_time timestamp without time zone NOT NULL,
-    end_time timestamp without time zone,
-    status text,
-    pid integer NOT NULL,
-    PRIMARY KEY (job_id)
-);
-SELECT pg_catalog.pg_extension_config_dump('job_log', '');
-CREATE INDEX job_log_job_name ON job_log (job_name);
-CREATE INDEX job_log_start_time ON job_log (start_time);
-CREATE INDEX job_log_pid ON job_log (pid);
-CREATE SEQUENCE job_log_job_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE job_log_job_id_seq OWNED BY job_log.job_id;
-ALTER TABLE job_log ALTER COLUMN job_id SET DEFAULT nextval('job_log_job_id_seq'::regclass);
-CREATE TRIGGER trg_job_monitor AFTER UPDATE ON job_log FOR EACH ROW EXECUTE PROCEDURE job_monitor();
-
-
-CREATE TABLE job_detail (
-    job_id bigint NOT NULL,
-    step_id bigint NOT NULL,
-    action text NOT NULL,
-    start_time timestamp without time zone NOT NULL,
-    end_time timestamp without time zone,
-    elapsed_time integer,
-    status text,
-    message text,
-    PRIMARY KEY (job_id, step_id)
-);
-SELECT pg_catalog.pg_extension_config_dump('job_detail', '');
-ALTER TABLE job_detail ADD CONSTRAINT job_detail_job_id_fkey FOREIGN KEY (job_id) REFERENCES job_log(job_id);
-CREATE SEQUENCE job_detail_step_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE job_detail_step_id_seq OWNED BY job_detail.step_id;
-ALTER TABLE job_detail ALTER COLUMN step_id SET DEFAULT nextval('job_detail_step_id_seq'::regclass);
-
-
-CREATE TABLE job_check_log (
-    job_id integer NOT NULL,
-    job_name text NOT NULL
-);
-SELECT pg_catalog.pg_extension_config_dump('job_check_log', '');
-
-CREATE TABLE job_check_config (
-    job_name text NOT NULL,
-    warn_threshold interval NOT NULL,
-    error_threshold interval NOT NULL,
-    active boolean DEFAULT false NOT NULL,
---    escalate text DEFAULT 'email'::text NOT NULL,
-    sensitivity smallint DEFAULT 0 NOT NULL,
-    PRIMARY KEY (job_name)
-);
-SELECT pg_catalog.pg_extension_config_dump('job_check_config', '');
-
-
-
 -- ########## pg_jobmon extension function definitions ##########
 CREATE OR REPLACE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS integer
     LANGUAGE plpgsql
@@ -378,3 +309,71 @@ return 'OK(Current job reports looks acceptable)';
 
 end
 $$;
+
+
+-- ########## pg_jobmon extension table definitions ##########
+-- See about making these into partitioned tables by start_time
+CREATE TABLE job_log (
+    job_id bigint NOT NULL,
+    owner text NOT NULL,
+    job_name text NOT NULL,
+    start_time timestamp without time zone NOT NULL,
+    end_time timestamp without time zone,
+    status text,
+    pid integer NOT NULL,
+    PRIMARY KEY (job_id)
+);
+SELECT pg_catalog.pg_extension_config_dump('job_log', '');
+CREATE INDEX job_log_job_name ON job_log (job_name);
+CREATE INDEX job_log_start_time ON job_log (start_time);
+CREATE INDEX job_log_pid ON job_log (pid);
+CREATE SEQUENCE job_log_job_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE job_log_job_id_seq OWNED BY job_log.job_id;
+ALTER TABLE job_log ALTER COLUMN job_id SET DEFAULT nextval('job_log_job_id_seq'::regclass);
+CREATE TRIGGER trg_job_monitor AFTER UPDATE ON job_log FOR EACH ROW EXECUTE PROCEDURE job_monitor();
+
+
+CREATE TABLE job_detail (
+    job_id bigint NOT NULL,
+    step_id bigint NOT NULL,
+    action text NOT NULL,
+    start_time timestamp without time zone NOT NULL,
+    end_time timestamp without time zone,
+    elapsed_time integer,
+    status text,
+    message text,
+    PRIMARY KEY (job_id, step_id)
+);
+SELECT pg_catalog.pg_extension_config_dump('job_detail', '');
+ALTER TABLE job_detail ADD CONSTRAINT job_detail_job_id_fkey FOREIGN KEY (job_id) REFERENCES job_log(job_id);
+CREATE SEQUENCE job_detail_step_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE job_detail_step_id_seq OWNED BY job_detail.step_id;
+ALTER TABLE job_detail ALTER COLUMN step_id SET DEFAULT nextval('job_detail_step_id_seq'::regclass);
+
+
+CREATE TABLE job_check_log (
+    job_id integer NOT NULL,
+    job_name text NOT NULL
+);
+SELECT pg_catalog.pg_extension_config_dump('job_check_log', '');
+
+CREATE TABLE job_check_config (
+    job_name text NOT NULL,
+    warn_threshold interval NOT NULL,
+    error_threshold interval NOT NULL,
+    active boolean DEFAULT false NOT NULL,
+--    escalate text DEFAULT 'email'::text NOT NULL,
+    sensitivity smallint DEFAULT 0 NOT NULL,
+    PRIMARY KEY (job_name)
+);
+SELECT pg_catalog.pg_extension_config_dump('job_check_config', '');
