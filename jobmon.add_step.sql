@@ -1,14 +1,12 @@
-SET search_path = jobmon, pg_catalog;
-
 CREATE FUNCTION _autonomous_add_step(p_job_id integer, p_action text) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
     v_step_id INTEGER;
 BEGIN
-    SELECT nextval('jobmon.job_detail_step_id_seq') INTO v_step_id;
+    SELECT nextval('job_detail_step_id_seq') INTO v_step_id;
 
-    INSERT INTO jobmon.job_detail (job_id, step_id, action, start_time)
+    INSERT INTO job_detail (job_id, step_id, action, start_time)
     VALUES (p_job_id, v_step_id, p_action, current_timestamp);
 
     RETURN v_step_id;
@@ -23,7 +21,7 @@ DECLARE
     v_step_id INTEGER;
     v_remote_query TEXT;
 BEGIN
-    v_remote_query := 'SELECT jobmon._autonomous_add_step (' ||
+    v_remote_query := 'SELECT _autonomous_add_step (' ||
         p_job_id || ',' ||
         quote_literal(p_action) || ')';
 

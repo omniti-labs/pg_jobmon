@@ -6,7 +6,7 @@ CREATE FUNCTION _autonomous_upd_step(p_job_id integer, p_step_id integer, p_stat
 DECLARE
     v_numrows integer;
 BEGIN
-    UPDATE jobmon.job_detail SET 
+    UPDATE job_detail SET 
         end_time = current_timestamp,
         elapsed_time = date_part('epoch',now() - start_time)::integer,
         status = p_status,
@@ -24,7 +24,7 @@ CREATE FUNCTION upd_step(p_job_id integer, p_step_id integer, p_status text, p_m
 DECLARE
     v_remote_query TEXT;
 BEGIN
-    v_remote_query := 'SELECT jobmon._autonomous_upd_step ('||
+    v_remote_query := 'SELECT _autonomous_upd_step ('||
     p_job_id || ',' ||
     p_step_id || ',' ||
     quote_literal(p_status) || ',' ||

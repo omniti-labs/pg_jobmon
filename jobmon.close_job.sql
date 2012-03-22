@@ -6,7 +6,7 @@ CREATE FUNCTION _autonomous_close_job(p_job_id integer) RETURNS integer
 DECLARE
     v_numrows integer;
 BEGIN    
-    UPDATE jobmon.job_log SET
+    UPDATE job_log SET
         end_time = current_timestamp,
         status = 'OK'
     WHERE job_id = p_job_id;
@@ -22,7 +22,7 @@ CREATE FUNCTION close_job(p_job_id integer) RETURNS void
 DECLARE
     v_remote_query TEXT;
 BEGIN
-    v_remote_query := 'SELECT jobmon._autonomous_close_job('||p_job_id||')'; 
+    v_remote_query := 'SELECT _autonomous_close_job('||p_job_id||')'; 
 
     EXECUTE 'SELECT devnull FROM dblink.dblink(''dbname=' || current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  

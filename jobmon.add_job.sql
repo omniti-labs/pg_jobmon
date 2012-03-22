@@ -1,5 +1,3 @@
-SET search_path = jobmon, pg_catalog;
-
 CREATE OR REPLACE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS integer
     LANGUAGE plpgsql
     AS $$
@@ -8,7 +6,7 @@ DECLARE
 BEGIN
     SELECT nextval('jobmon.job_log_job_id_seq') INTO v_job_id;
 
-    INSERT INTO jobmon.job_log (job_id, owner, job_name, start_time, pid)
+    INSERT INTO job_log (job_id, owner, job_name, start_time, pid)
     VALUES (v_job_id, p_owner, p_job_name, current_timestamp, p_pid); 
 
     RETURN v_job_id; 

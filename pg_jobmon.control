@@ -1,0 +1,5 @@
+directory = pg_jobmon
+default_version = 2012.03.22.0
+comment = 'Extension for logging and monitoring jobs in PostgreSQL'
+requires = dblink
+relocatable = true

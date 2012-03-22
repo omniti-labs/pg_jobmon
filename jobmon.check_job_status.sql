@@ -1,6 +1,6 @@
 SET search_path = jobmon, pg_catalog;
 
--- v_history is how far into jobmon.job_log's past the check will go. Don't go further back than your longest job's interval to keep check efficient
+-- v_history is how far into job_log's past the check will go. Don't go further back than your longest job's interval to keep check efficient
 CREATE FUNCTION check_job_status(v_history interval) RETURNS text
     LANGUAGE plpgsql
     AS $$
@@ -14,8 +14,8 @@ declare
 begin
 
     -- Generic check for jobs without special monitoring. Should error on 3 failures
-    FOR v_job_errors IN SELECT c.job_name FROM otools.check_jobs c 
-        WHERE c.job_name NOT IN (select s.job_name from otools.check_job_status s where c.job_name <> s.job_name) GROUP BY c.job_name HAVING count(*) > 2
+    FOR v_job_errors IN SELECT l.job_name FROM check_job_log l 
+        WHERE l.job_name NOT IN (select c.job_name from job_check_config c where l.job_name <> c.job_name) GROUP BY l.job_name HAVING count(*) > 2
     LOOP
         v_trouble[v_count] := v_job_errors.job_name;
         v_count := v_count+1;
@@ -33,7 +33,7 @@ begin
                     current_timestamp,
                     current_timestamp - timestamp as last_run_time,  
                     case
-                        when (select count(*) from job_check where job_name = job_status.job_name) > sensitivity then 'ERROR'  
+                        when (select count(*) from job_check where job_name = job_check_config.job_name) > sensitivity then 'ERROR'  
                         when timestamp < (current_timestamp - error_threshold) then 'ERROR' 
                         when timestamp < (current_timestamp - warn_threshold) then 'WARNING'
                         else 'OK'
@@ -48,13 +48,13 @@ begin
                             end
                     end as job_status
                 from
-                    job_status 
+                    job_check_config 
                     left join (
                                 select
                                     job_name,
                                     max(timestamp) as timestamp 
                                 from
-                                    avail.job_masters
+                                    job_log
                                 where
                                     timestamp > now() - v_history
                                 group by 
@@ -69,7 +69,7 @@ begin
                                     (select case when (select count(*) from pg_stat_activity where procpid = m.pid) > 0 THEN 'RUNNING' ELSE NULL END),
                                     'FOOBAR') as status
                                 from
-                                    avail.job_masters m 
+                                    job_log m 
                                 where 
                                     timestamp > now() - v_history
                                 ) lj_status using (job_name,timestamp)   
@@ -85,7 +85,7 @@ loop
     end if;
     
     if v_jobs.job_status = 'MISSING' AND v_jobs.last_run_time IS NULL then
-        v_bad := v_bad || v_jobs.job_name || ': MISSING - Last run over ' || v_history || ' hrs ago. Check jobmon.job_log for more details;';
+        v_bad := v_bad || v_jobs.job_name || ': MISSING - Last run over ' || v_history || ' hrs ago. Check job_log for more details;';
     end if;
 
 end loop;
