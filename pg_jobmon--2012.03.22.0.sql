@@ -22,7 +22,7 @@ CREATE SEQUENCE job_log_job_id_seq
     CACHE 1;
 ALTER SEQUENCE job_log_job_id_seq OWNED BY job_log.job_id;
 ALTER TABLE job_log ALTER COLUMN job_id SET DEFAULT nextval('job_log_job_id_seq'::regclass);
-CREATE TRIGGER trg_job_monitor AFTER UPDATE ON job_masters FOR EACH ROW EXECUTE PROCEDURE job_monitor();
+CREATE TRIGGER trg_job_monitor AFTER UPDATE ON job_log FOR EACH ROW EXECUTE PROCEDURE job_monitor();
 
 
 CREATE TABLE job_detail (
@@ -33,7 +33,7 @@ CREATE TABLE job_detail (
     end_time timestamp without time zone,
     elapsed_time integer,
     status text,
-    message text
+    message text,
     PRIMARY KEY (job_id, step_id)
 );
 SELECT pg_catalog.pg_extension_config_dump('job_detail', '');
