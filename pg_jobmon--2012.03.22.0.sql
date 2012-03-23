@@ -21,13 +21,16 @@ CREATE FUNCTION add_job(p_job_name text) RETURNS integer
 DECLARE 
     v_job_id INTEGER;
     v_remote_query TEXT;
+    v_dblink_schema TEXT;
 BEGIN
+    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
+    
     v_remote_query := 'SELECT jobmon._autonomous_add_job (' ||
         quote_literal(current_user) || ',' ||
         quote_literal(p_job_name) || ',' ||
         pg_backend_pid() || ')';
 
-    EXECUTE 'SELECT job_id FROM dblink.dblink(''dbname='|| current_database() ||
+    EXECUTE 'SELECT job_id FROM ' || v_dblink_schema || '.dblink(''dbname='|| current_database() ||
         ''','|| quote_literal(v_remote_query) || ',TRUE) t (job_id int)' INTO v_job_id;      
 
     IF v_job_id IS NULL THEN
@@ -61,12 +64,17 @@ CREATE FUNCTION add_step(p_job_id integer, p_action text) RETURNS integer
 DECLARE 
     v_step_id INTEGER;
     v_remote_query TEXT;
+    v_dblink_schema TEXT;
+    
 BEGIN
+
+    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
+    
     v_remote_query := 'SELECT _autonomous_add_step (' ||
         p_job_id || ',' ||
         quote_literal(p_action) || ')';
 
-    EXECUTE 'SELECT step_id FROM dblink.dblink(''dbname='|| current_database() ||
+    EXECUTE 'SELECT step_id FROM ' || v_dblink_schema || '.dblink(''dbname='|| current_database() ||
         ''','|| quote_literal(v_remote_query) || ',TRUE) t (step_id int)' INTO v_step_id;      
 
     IF v_step_id IS NULL THEN
@@ -112,10 +120,14 @@ CREATE FUNCTION close_job(p_job_id integer) RETURNS void
     AS $$
 DECLARE
     v_remote_query TEXT;
+    v_dblink_schema TEXT;
 BEGIN
+
+    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
+    
     v_remote_query := 'SELECT _autonomous_close_job('||p_job_id||')'; 
 
-    EXECUTE 'SELECT devnull FROM dblink.dblink(''dbname=' || current_database() ||
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 END
 $$;
@@ -142,17 +154,21 @@ CREATE FUNCTION fail_job(p_job_id integer) RETURNS void
     AS $$
 DECLARE
     v_remote_query TEXT;
+    v_dblink_schema TEXT;
 BEGIN
+    
+    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
+    
     v_remote_query := 'SELECT _autonomous_fail_job('||p_job_id||')'; 
 
-    EXECUTE 'SELECT devnull FROM dblink.dblink(''dbname=' || current_database() ||
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 
 END
 $$;
 
 
-CREATE FUNCTION _autonomous_upd_step(p_job_id integer, p_step_id integer, p_status text, p_message text) RETURNS integer
+CREATE FUNCTION _autonomous_update_step(p_job_id integer, p_step_id integer, p_status text, p_message text) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -170,19 +186,21 @@ END
 $$;
 
 
-CREATE FUNCTION upd_step(p_job_id integer, p_step_id integer, p_status text, p_message text) RETURNS void
+CREATE FUNCTION update_step(p_job_id integer, p_step_id integer, p_status text, p_message text) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
     v_remote_query TEXT;
+    v_dblink_schema TEXT;
 BEGIN
-    v_remote_query := 'SELECT _autonomous_upd_step ('||
+    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
+    v_remote_query := 'SELECT _autonomous_update_step ('||
     p_job_id || ',' ||
     p_step_id || ',' ||
     quote_literal(p_status) || ',' ||
     quote_literal(p_message) || ')';
 
-    EXECUTE 'SELECT devnull FROM dblink.dblink(''dbname=' || current_database() ||
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
         ''','|| quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 END
 $$;
