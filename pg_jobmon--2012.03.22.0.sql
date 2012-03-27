@@ -1,5 +1,5 @@
 -- ########## pg_jobmon extension function definitions ##########
-CREATE OR REPLACE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS integer
+CREATE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -395,3 +395,14 @@ CREATE TABLE job_check_config (
     PRIMARY KEY (job_name)
 );
 SELECT pg_catalog.pg_extension_config_dump('job_check_config', '');
+
+CREATE TABLE job_alert_resmon (
+    error_code  integer NOT NULL,
+    error_text  text NOT NULL,
+    PRIMARY KEY (error_code)
+);
+SELECT pg_catalog.pg_extension_config_dump('job_alert', '');
+INSERT INTO job_alert (error_code, error_text) VALUES (1, 'OK');
+INSERT INTO job_alert (error_code, error_text) VALUES (2, 'WARNING');
+INSERT INTO job_alert (error_code, error_text) VALUES (3, 'ERROR');
+
