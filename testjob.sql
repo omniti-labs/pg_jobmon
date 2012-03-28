@@ -1,5 +1,3 @@
-set search_path = 'jobmon';
-
 CREATE OR REPLACE FUNCTION testjob () RETURNS void
     LANGUAGE plpgsql
     AS $$
