@@ -1,9 +1,9 @@
 -- ########## pg_jobmon extension function definitions ##########
-CREATE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS BIGINT
+CREATE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_job_id BIGINT;
+    v_job_id bigint;
 BEGIN
     SELECT nextval('@extschema@.job_log_job_id_seq') INTO v_job_id;
 
@@ -15,13 +15,13 @@ END
 $$;
 
 
-CREATE FUNCTION add_job(p_job_name text) RETURNS BIGINT
+CREATE FUNCTION add_job(p_job_name text) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE 
-    v_job_id BIGINT;
-    v_remote_query TEXT;
-    v_dblink_schema TEXT;
+    v_job_id bigint;
+    v_remote_query text;
+    v_dblink_schema text;
 BEGIN
     SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
     
@@ -42,11 +42,11 @@ END
 $$;
 
 
-CREATE FUNCTION _autonomous_add_step(p_job_id BIGINT, p_action text) RETURNS BIGINT
+CREATE FUNCTION _autonomous_add_step(p_job_id bigint, p_action text) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_step_id BIGINT;
+    v_step_id bigint;
 BEGIN
     SELECT nextval('@extschema@.job_detail_step_id_seq') INTO v_step_id;
 
@@ -58,13 +58,13 @@ END
 $$;
 
 
-CREATE FUNCTION add_step(p_job_id BIGINT, p_action text) RETURNS BIGINT
+CREATE FUNCTION add_step(p_job_id bigint, p_action text) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE 
-    v_step_id BIGINT;
-    v_remote_query TEXT;
-    v_dblink_schema TEXT;
+    v_step_id bigint;
+    v_remote_query text;
+    v_dblink_schema text;
     
 BEGIN
 
@@ -86,24 +86,28 @@ END
 $$;
 
 
-CREATE FUNCTION _autonomous_cancel_job(p_job_id BIGINT) RETURNS BIGINT
+CREATE FUNCTION cancel_job(v_job_id bigint) RETURNS boolean
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    p_pid BIGINT;
+    v_pid       integer;
+    v_step_id   bigint;
 BEGIN
-    SELECT pid FROM @extschema@.job_logs WHERE job_id = p_job_id INTO p_pid;
-    SELECT pg_cancel_backend(p_pid);
-    SELECT _autonomous_fail_job(p_job_id);    
+    SELECT pid INTO v_pid FROM @extschema@.job_log WHERE job_id = v_job_id ;
+    PERFORM pg_cancel_backend(v_pid);
+    SELECT max(step_id) INTO v_step_id FROM @extschema@.job_detail WHERE job_id = v_job_id;
+    PERFORM @extschema@._autonomous_update_step(v_job_id, v_step_id, 'BAD', 'Manually cancelled via call to @extschema@.cancel_job()');
+    PERFORM @extschema@._autonomous_fail_job(v_job_id);
+    RETURN true;
 END
 $$;
 
 
-CREATE FUNCTION _autonomous_close_job(p_job_id BIGINT) RETURNS INTEGER
+CREATE FUNCTION _autonomous_close_job(p_job_id bigint) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_numrows INTEGER;
+    v_numrows integer;
 BEGIN    
     UPDATE @extschema@.job_log SET
         end_time = current_timestamp,
@@ -115,12 +119,12 @@ END
 $$;
 
 
-CREATE FUNCTION close_job(p_job_id BIGINT) RETURNS void
+CREATE FUNCTION close_job(p_job_id bigint) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_remote_query TEXT;
-    v_dblink_schema TEXT;
+    v_remote_query text;
+    v_dblink_schema text;
 BEGIN
 
     SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
@@ -133,11 +137,11 @@ END
 $$;
 
 
-CREATE FUNCTION _autonomous_fail_job(p_job_id BIGINT) RETURNS INTEGER
+CREATE FUNCTION _autonomous_fail_job(p_job_id bigint) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_numrows INTEGER;
+    v_numrows integer;
 BEGIN
     UPDATE @extschema@.job_log SET
         end_time = current_timestamp,
@@ -149,12 +153,12 @@ END
 $$;
 
 
-CREATE FUNCTION fail_job(p_job_id BIGINT) RETURNS void
+CREATE FUNCTION fail_job(p_job_id bigint) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_remote_query TEXT;
-    v_dblink_schema TEXT;
+    v_remote_query text;
+    v_dblink_schema text;
 BEGIN
     
     SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
@@ -168,7 +172,7 @@ END
 $$;
 
 
-CREATE FUNCTION _autonomous_update_step(p_job_id BIGINT, p_step_id BIGINT, p_status text, p_message text) RETURNS integer
+CREATE FUNCTION _autonomous_update_step(p_job_id bigint, p_step_id bigint, p_status text, p_message text) RETURNS integer
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -186,12 +190,12 @@ END
 $$;
 
 
-CREATE FUNCTION update_step(p_job_id BIGINT, p_step_id BIGINT, p_status text, p_message text) RETURNS void
+CREATE FUNCTION update_step(p_job_id bigint, p_step_id bigint, p_status text, p_message text) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_remote_query TEXT;
-    v_dblink_schema TEXT;
+    v_remote_query text;
+    v_dblink_schema text;
 BEGIN
     SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
     
@@ -212,9 +216,9 @@ CREATE FUNCTION job_monitor() RETURNS trigger
     AS $$
 BEGIN
     IF NEW.status = 'OK' THEN
-        DELETE FROM job_check WHERE job_name = NEW.job_name;
+        DELETE FROM @extschema@.job_check_log WHERE job_name = NEW.job_name;
     ELSIF NEW.status = 'BAD' THEN
-        INSERT INTO @extschema@.job_check (job_id, job_name) VALUES (NEW.job_id, NEW.job_name);
+        INSERT INTO @extschema@.job_check_log (job_id, job_name) VALUES (NEW.job_id, NEW.job_name);
     ELSE
         -- Do nothing
     END IF;
@@ -233,15 +237,15 @@ DECLARE
     v_job_errors RECORD;
     v_count int = 1;
     v_trouble text[];
-   -- v_bad TEXT := 'BAD(';
-   -- v_warn TEXT := 'WARNING(';
+   -- v_bad text := 'BAD(';
+   -- v_warn text := 'WARNING(';
 BEGIN
     
     alert_text := '(';
     alert_code := 1;
     -- Generic check for jobs without special monitoring. Should error on 3 failures
-    FOR v_job_errors IN SELECT l.job_name FROM @extschema@.check_job_log l 
-        WHERE l.job_name NOT IN (select c.job_name from job_check_config c where l.job_name <> c.job_name) GROUP BY l.job_name HAVING count(*) > 2
+    FOR v_job_errors IN SELECT l.job_name FROM @extschema@.job_check_log l 
+        WHERE l.job_name NOT IN (select c.job_name from @extschema@.job_check_config c where l.job_name <> c.job_name) GROUP BY l.job_name HAVING count(*) > 2
     LOOP
         v_trouble[v_count] := v_job_errors.job_name;
         v_count := v_count+1;
@@ -259,7 +263,7 @@ BEGIN
                     current_timestamp,
                     current_timestamp - timestamp as last_run_time,  
                     case
-                        when (select count(*) from @extschema@.job_check where job_name = job_check_config.job_name) > sensitivity then 'ERROR'  
+                        when (select count(*) from @extschema@.job_check_log where job_name = job_check_config.job_name) > sensitivity then 'ERROR'  
                         when timestamp < (current_timestamp - error_threshold) then 'ERROR' 
                         when timestamp < (current_timestamp - warn_threshold) then 'WARNING'
                         else 'OK'
@@ -391,7 +395,7 @@ ALTER TABLE job_detail ALTER COLUMN step_id SET DEFAULT nextval('job_detail_step
 
 
 CREATE TABLE job_check_log (
-    job_id BIGINT NOT NULL,
+    job_id bigint NOT NULL,
     job_name text NOT NULL
 );
 SELECT pg_catalog.pg_extension_config_dump('job_check_log', '');
