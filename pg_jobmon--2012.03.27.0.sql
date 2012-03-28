@@ -261,17 +261,17 @@ BEGIN
                     job_name,
                     status, 
                     current_timestamp,
-                    current_timestamp - timestamp as last_run_time,  
+                    current_timestamp - start_time as last_run_time,  
                     case
                         when (select count(*) from @extschema@.job_check_log where job_name = job_check_config.job_name) > sensitivity then 'ERROR'  
-                        when timestamp < (current_timestamp - error_threshold) then 'ERROR' 
-                        when timestamp < (current_timestamp - warn_threshold) then 'WARNING'
+                        when start_time < (current_timestamp - error_threshold) then 'ERROR' 
+                        when start_time < (current_timestamp - warn_threshold) then 'WARNING'
                         else 'OK'
                     end as nagios_code,
                     case
                         when status = 'BAD' then 'BAD' 
                         when status is null then 'MISSING' 
-                        when (timestamp < current_timestamp - error_threshold) OR (timestamp < current_timestamp - warn_threshold) then 
+                        when (start_time < current_timestamp - error_threshold) OR (start_time < current_timestamp - warn_threshold) then 
                             case 
                                 when status = 'OK' then 'MISSING'
                                 else status
@@ -282,18 +282,18 @@ BEGIN
                     left join (
                                 select
                                     job_name,
-                                    max(timestamp) as timestamp 
+                                    max(start_time) as start_time 
                                 from
                                     @extschema@.job_log
                                 where
-                                    timestamp > now() - v_history
+                                    start_time > now() - v_history
                                 group by 
                                     job_name 
                                 ) last_job using (job_name)
                     left join (
                                 select 
                                     job_name,    
-                                    timestamp, 
+                                    start_time, 
                                     coalesce(status,
                                     (select case when (select count(*) from pg_locks where not granted and pid = m.pid) > 0 THEN 'BLOCKED' ELSE NULL END),
                                     (select case when (select count(*) from pg_stat_activity where procpid = m.pid) > 0 THEN 'RUNNING' ELSE NULL END),
@@ -301,8 +301,8 @@ BEGIN
                                 from
                                     @extschema@.job_log m 
                                 where 
-                                    timestamp > now() - v_history
-                                ) lj_status using (job_name,timestamp)   
+                                    start_time > now() - v_history
+                                ) lj_status using (job_name,start_time)   
                  where active      
 loop
 
