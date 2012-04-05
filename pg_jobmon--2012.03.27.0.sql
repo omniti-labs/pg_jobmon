@@ -267,7 +267,7 @@ BEGIN
                         when start_time < (current_timestamp - error_threshold) then 'ERROR' 
                         when start_time < (current_timestamp - warn_threshold) then 'WARNING'
                         else 'OK'
-                    end as nagios_code,
+                    end as error_code,
                     case
                         when status = 'BAD' then 'BAD' 
                         when status is null then 'MISSING' 
@@ -306,7 +306,7 @@ BEGIN
                  where active      
 loop
 
-    if v_jobs.nagios_code = 'ERROR' then
+    if v_jobs.error_code = 'ERROR' then
         alert_code := 3;
         alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??') || '; ';
     end if;
@@ -316,7 +316,7 @@ loop
         alert_text := alert_text || v_jobs.job_name || ': MISSING - Last run over ' || v_history || ' hrs ago. Check job_log for more details;';
     end if;
 
-    if v_jobs.nagios_code = 'WARNING' then
+    if v_jobs.error_code = 'WARNING' then
         IF alert_code <> 3 THEN
             alert_code := 2;
         END IF;
@@ -345,7 +345,8 @@ $$;
 
 
 -- ########## pg_jobmon extension table definitions ##########
--- See about making these into partitioned tables by start_time
+-- Recommended to make job_log and job_detail tables partitioned on start_time 
+--  if you see high logging traffic or don't need to keep the data indefinitely
 CREATE TABLE job_log (
     job_id bigint NOT NULL,
     owner text NOT NULL,
@@ -359,6 +360,7 @@ CREATE TABLE job_log (
 SELECT pg_catalog.pg_extension_config_dump('job_log', '');
 CREATE INDEX job_log_job_name ON job_log (job_name);
 CREATE INDEX job_log_start_time ON job_log (start_time);
+CREATE INDEX job_log_status ON job_log (status);
 CREATE INDEX job_log_pid ON job_log (pid);
 CREATE SEQUENCE job_log_job_id_seq
     START WITH 1
