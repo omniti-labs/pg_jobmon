@@ -8,7 +8,7 @@ BEGIN
     SELECT nextval('@extschema@.job_log_job_id_seq') INTO v_job_id;
 
     INSERT INTO @extschema@.job_log (job_id, owner, job_name, start_time, pid)
-    VALUES (v_job_id, p_owner, p_job_name, current_timestamp, p_pid); 
+    VALUES (v_job_id, p_owner, upper(p_job_name), current_timestamp, p_pid); 
 
     RETURN v_job_id; 
 END
@@ -237,8 +237,6 @@ DECLARE
     v_job_errors RECORD;
     v_count int = 1;
     v_trouble text[];
-   -- v_bad text := 'BAD(';
-   -- v_warn text := 'WARNING(';
 BEGIN
     
     alert_text := '(';
@@ -255,7 +253,7 @@ BEGIN
         alert_text := alert_text || 'Jobs w/ 3 consecutive errors: '||array_to_string(v_trouble,', ')||'; ';
     END IF;
     
-    -- Jobs with special monitoring (threshold different than 3 errors, must run within a timeframe, etc)
+    -- Jobs with special monitoring (threshold different than 3 errors; must run within a timeframe; etc)
     for v_jobs in 
                 select
                     job_name,
@@ -328,7 +326,7 @@ loop
 end loop;
 
 if alert_text = '(' then
-    alert_text := 'All jobs run successfully';
+    alert_text := alert_text || 'All jobs run successfully';
 end if;
 
 alert_text := alert_text || ')';
