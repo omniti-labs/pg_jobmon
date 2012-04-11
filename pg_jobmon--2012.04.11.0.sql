@@ -243,7 +243,7 @@ BEGIN
     alert_code := 1;
     -- Generic check for jobs without special monitoring. Should error on 3 failures
     FOR v_job_errors IN SELECT l.job_name FROM @extschema@.job_check_log l 
-        WHERE l.job_name NOT IN (select c.job_name from @extschema@.job_check_config c where l.job_name <> c.job_name) GROUP BY l.job_name HAVING count(*) > 2
+        WHERE l.job_name NOT IN (SELECT c.job_name FROM @extschema@.job_check_config c WHERE l.job_name <> c.job_name) GROUP BY l.job_name HAVING count(*) > 2
     LOOP
         v_trouble[v_count] := v_job_errors.job_name;
         v_count := v_count+1;
@@ -255,91 +255,87 @@ BEGIN
     END IF;
     
     -- Jobs with special monitoring (threshold different than 3 errors; must run within a timeframe; etc)
-    for v_jobs in 
-                select
+    FOR v_jobs IN 
+                SELECT
                     job_name,
                     status, 
                     current_timestamp,
-                    current_timestamp - start_time as last_run_time,  
-                    case
-                        when (select count(*) from @extschema@.job_check_log where job_name = job_check_config.job_name) > sensitivity then 'ERROR'  
-                        when start_time < (current_timestamp - error_threshold) then 'ERROR' 
-                        when start_time < (current_timestamp - warn_threshold) then 'WARNING'
-                        else 'OK'
-                    end as error_code,
-                    case
-                        when status = 'BAD' then 'BAD' 
-                        when status is null then 'MISSING' 
-                        when (start_time < current_timestamp - error_threshold) OR (start_time < current_timestamp - warn_threshold) then 
-                            case 
-                                when status = 'OK' then 'MISSING'
+                    current_timestamp - start_time AS last_run_time,  
+                    CASE
+                        WHEN (SELECT count(*) FROM @extschema@.job_check_log WHERE job_name = job_check_config.job_name) > sensitivity THEN 'ERROR'  
+                        WHEN start_time < (current_timestamp - error_threshold) THEN 'ERROR' 
+                        WHEN start_time < (current_timestamp - warn_threshold) THEN 'WARNING'
+                        ELSE 'OK'
+                    END AS error_code,
+                    CASE
+                        WHEN status = 'BAD' THEN 'BAD'
+                        WHEN status is null THEN 'MISSING' 
+                        WHEN (start_time < current_timestamp - error_threshold) OR (start_time < current_timestamp - warn_threshold) THEN 
+                            CASE 
+                                WHEN status = 'OK' THEN 'MISSING'
                                 else status
-                            end
-                    end as job_status
-                from
+                            END
+                    END AS job_status
+                FROM
                     @extschema@.job_check_config 
-                    left join (
-                                select
+                    LEFT JOIN (
+                                SELECT
                                     job_name,
-                                    max(start_time) as start_time 
-                                from
+                                    max(start_time) AS start_time 
+                                FROM
                                     @extschema@.job_log
-                                where
+                                WHERE
                                     start_time > now() - v_history
-                                group by 
+                                GROUP BY 
                                     job_name 
                                 ) last_job using (job_name)
-                    left join (
-                                select 
+                    LEFT JOIN (
+                                SELECT 
                                     job_name,    
                                     start_time, 
                                     coalesce(status,
-                                    (select case when (select count(*) from pg_locks where not granted and pid = m.pid) > 0 THEN 'BLOCKED' ELSE NULL END),
-                                    (select case when (select count(*) from pg_stat_activity where procpid = m.pid) > 0 THEN 'RUNNING' ELSE NULL END),
-                                    'FOOBAR') as status
-                                from
+                                    (SELECT CASE WHEN (SELECT count(*) FROM pg_locks WHERE not granted and pid = m.pid) > 0 THEN 'BLOCKED' ELSE NULL END),
+                                    (SELECT CASE WHEN (SELECT count(*) FROM pg_stat_activity WHERE procpid = m.pid) > 0 THEN 'RUNNING' ELSE NULL END),
+                                    'FOOBAR') AS status
+                                FROM
                                     @extschema@.job_log m 
-                                where 
+                                WHERE 
                                     start_time > now() - v_history
                                 ) lj_status using (job_name,start_time)   
-                 where active      
-loop
+                 WHERE active      
+LOOP
 
-    if v_jobs.error_code = 'ERROR' then
+    IF v_jobs.error_code = 'ERROR' THEN
         alert_code := 3;
-        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??') || '; ';
-    end if;
-    
-    if v_jobs.job_status = 'MISSING' AND v_jobs.last_run_time IS NULL then
-        alert_code := 3;
-        alert_text := alert_text || v_jobs.job_name || ': MISSING - Last run over ' || v_history || ' hrs ago. Check job_log for more details;';
-    end if;
+        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??');
+    END IF;
 
-    if v_jobs.error_code = 'WARNING' then
+    IF v_jobs.error_code = 'WARNING' THEN
         IF alert_code <> 3 THEN
             alert_code := 2;
         END IF;
-        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??') || '; ';
-    end if;
+        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??');
+    END IF;
     
+    IF v_jobs.job_status = 'MISSING' THEN
+        IF v_jobs.last_run_time IS NULL THEN  
+            alert_text := alert_text || ' - Last run over ' || v_history || ' ago. Check job_log for more details;';
+        ELSE
+            alert_text := alert_text || ' - Last run at ' || current_timestamp - v_jobs.last_run_time;
+        END IF; 
+    END IF;
     
+    alert_text := alert_text || '; ';
 
-end loop;
+END LOOP;
 
-if alert_text = '(' then
+IF alert_text = '(' THEN
     alert_text := alert_text || 'All jobs run successfully';
-end if;
+END IF;
 
 alert_text := alert_text || ')';
 
---if v_warn <> 'WARNING(' then
- --   v_warn := v_warn || ')';
- --   return v_warn;
---end if; 
-
---return 'OK(Current job reports looks acceptable)';
-
-end
+END
 $$;
 
 
@@ -420,5 +416,5 @@ CREATE TABLE job_alert_resmon (
 SELECT pg_catalog.pg_extension_config_dump('job_alert_resmon', '');
 INSERT INTO job_alert_resmon (error_code, error_text) VALUES (1, 'OK');
 INSERT INTO job_alert_resmon (error_code, error_text) VALUES (2, 'WARNING');
-INSERT INTO job_alert_resmon (error_code, error_text) VALUES (3, 'ERROR');
+INSERT INTO job_alert_resmon (error_code, error_text) VALUES (3, 'BAD');
 

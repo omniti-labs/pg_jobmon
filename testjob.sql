@@ -8,7 +8,7 @@ DECLARE
 BEGIN
 
     v_job_name := 'PG_JOBMON TEST GOOD JOB';
-    SELECT into v_job_id  jobmon.add_job(v_job_name);
+    SELECT INTO v_job_id  jobmon.add_job(v_job_name);
     SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 1');
     PERFORM jobmon.update_step(v_job_id, v_step_id, 'OK', 'Successful Step 1');
     SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 2');
@@ -17,7 +17,7 @@ BEGIN
     RAISE NOTICE 'Finished TEST GOOD JOB';
     
     v_job_name = 'PG_JOBMON TEST BAD JOB';
-    SELECT into v_job_id  jobmon.add_job(v_job_name);
+    SELECT INTO v_job_id  jobmon.add_job(v_job_name);
     SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 1');
     PERFORM jobmon.update_step(v_job_id, v_step_id, 'OK', 'Successful Step 1');
     SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 2');
@@ -27,7 +27,7 @@ BEGIN
     
     -- Test this run by opening up another session and running cancel_job(job_id) on this job
     v_job_name = 'PG_JOBMON TEST CANCELED JOB';
-    SELECT into v_job_id  jobmon.add_job(v_job_name);
+    SELECT INTO v_job_id  jobmon.add_job(v_job_name);
     SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 1');
     PERFORM jobmon.update_step(v_job_id, v_step_id, 'OK', 'Successful Step 1');
     SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 2');
