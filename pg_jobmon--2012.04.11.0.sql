@@ -408,13 +408,13 @@ CREATE TABLE job_check_config (
 );
 SELECT pg_catalog.pg_extension_config_dump('job_check_config', '');
 
-CREATE TABLE job_alert_resmon (
+CREATE TABLE job_alert_nagios (
     error_code  integer NOT NULL,
     error_text  text NOT NULL,
     PRIMARY KEY (error_code)
 );
-SELECT pg_catalog.pg_extension_config_dump('job_alert_resmon', '');
+SELECT pg_catalog.pg_extension_config_dump('job_alert_nagios', '');
 INSERT INTO job_alert_resmon (error_code, error_text) VALUES (1, 'OK');
 INSERT INTO job_alert_resmon (error_code, error_text) VALUES (2, 'WARNING');
-INSERT INTO job_alert_resmon (error_code, error_text) VALUES (3, 'BAD');
+INSERT INTO job_alert_resmon (error_code, error_text) VALUES (3, 'CRITICAL');
 
