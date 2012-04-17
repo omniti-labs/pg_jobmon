@@ -3,6 +3,7 @@ A blog post giving more extensive examples can be found at http://keithf4.com (c
 
 INSTALLATION:
 
+Requirements: dblink extension
 Copy the pg_jobmon.control and pg_jobmon--<version>.sql files to your $BASEDIR/share/extension folder. Create schema (not required but recommended) and then install using the PostgreSQL extensions system
 
     CREATE SCHEMA jobmon;
@@ -62,10 +63,14 @@ cancel_job(v_job_id bigint, p_config_table text) RETURNS boolean
 
 Log Tables:
 job_log
-    Logs the overall job details associated with a job_id
+    Logs the overall job details associated with a job_id. Recommended to make
+    partitioned on start_time if you see high logging traffic or don't 
+    need to keep the data indefinitely 
     
 job_detail
-    Logs the detailed steps of each job_id associated with jobs in job_log.
+    Logs the detailed steps of each job_id associated with jobs in job_log. 
+    Recommended to make partitioned on start_time if you see high logging traffic 
+    or don't need to keep the data indefinitely 
     
 
 MONITORING:
