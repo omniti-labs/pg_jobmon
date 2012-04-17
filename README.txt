@@ -1,5 +1,5 @@
 pg_jobmon is an extension to add the capability to log the progress of running functions and provide a limited monitoring capability to those logged functions. The logging portions of the extension should be stable and ready for production use. The monitoring capability is still fairly new and may require adjusting but it should be usable.
-A blog post giving more extensive examples can be found at http://keithf4.com
+A blog post giving more extensive examples can be found at http://keithf4.com (coming soon)
 
 INSTALLATION:
 
@@ -72,13 +72,12 @@ MONITORING:
 
 check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text)
 
-The above function takes as a parameter the interval of time that you'd like to go backwards to check for bad jobs. It's recommended not to look
-back any further than the longest interval that a single job runs to help the check run efficiently. For example, if the longest interval between any 
-job is a week, then pass '1 week'.
+The above function takes as a parameter the interval of time that you'd like to go backwards to check for bad jobs. It's recommended not to look back any further than the longest interval that a single job runs to help the check run efficiently. For example, if the longest interval between any job is a week, then pass '1 week'.
 
 The alert_code output indicates one of the following 3 statuses:
 -- Return code 1 means a successful job run
--- Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
+-- Return code 2 is for use with jobs that support a warning indicator. 
+    Not critical, but someone should look into it
 -- Return code 3 is for use with a critical job failure 
 
 This monitoring function was originally created with nagios in mind. By default, all logging functions use the job_alert_nagios table to associate 
@@ -86,8 +85,7 @@ This monitoring function was originally created with nagios in mind. By default,
 2 = WARNING
 3 = CRITICAL
 
-If you'd like these alert codes to be associated with other error text, you can create another table and join against it associating the code
-with whichever text you'd like. Alternate logging functions are available to make sure your logs get these custom statuses as well.
+If you'd like these alert codes to be associated with other error text, you can create another table and join against it associating the code with whichever text you'd like. Alternate logging functions are available to make sure your logs get these custom statuses as well.
 See LOGGING section.
 
 The alert_text output is a more detailed message indicating what the actual jobs that failed were.
