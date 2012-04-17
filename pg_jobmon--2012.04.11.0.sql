@@ -228,8 +228,8 @@ END
 $$;
 
 
--- v_history is how far into job_log's past the check will go. Don't go further back than your longest job's interval to keep check efficient
-CREATE FUNCTION check_job_status(v_history interval, OUT alert_code integer, OUT alert_text text) 
+-- p_history is how far into job_log's past the check will go. Don't go further back than your longest job's interval to keep check efficient
+CREATE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -285,7 +285,7 @@ BEGIN
                                 FROM
                                     @extschema@.job_log
                                 WHERE
-                                    start_time > now() - v_history
+                                    start_time > now() - p_history
                                 GROUP BY 
                                     job_name 
                                 ) last_job using (job_name)
@@ -300,7 +300,7 @@ BEGIN
                                 FROM
                                     @extschema@.job_log m 
                                 WHERE 
-                                    start_time > now() - v_history
+                                    start_time > now() - p_history
                                 ) lj_status using (job_name,start_time)   
                  WHERE active      
 LOOP
@@ -319,7 +319,7 @@ LOOP
     
     IF v_jobs.job_status = 'MISSING' THEN
         IF v_jobs.last_run_time IS NULL THEN  
-            alert_text := alert_text || ' - Last run over ' || v_history || ' ago. Check job_log for more details;';
+            alert_text := alert_text || ' - Last run over ' || p_history || ' ago. Check job_log for more details;';
         ELSE
             alert_text := alert_text || ' - Last run at ' || current_timestamp - v_jobs.last_run_time;
         END IF; 
@@ -414,7 +414,7 @@ CREATE TABLE job_alert_nagios (
     PRIMARY KEY (error_code)
 );
 SELECT pg_catalog.pg_extension_config_dump('job_alert_nagios', '');
-INSERT INTO job_alert_resmon (error_code, error_text) VALUES (1, 'OK');
-INSERT INTO job_alert_resmon (error_code, error_text) VALUES (2, 'WARNING');
-INSERT INTO job_alert_resmon (error_code, error_text) VALUES (3, 'CRITICAL');
+INSERT INTO job_alert_nagios (error_code, error_text) VALUES (1, 'OK');
+INSERT INTO job_alert_nagios (error_code, error_text) VALUES (2, 'WARNING');
+INSERT INTO job_alert_nagios (error_code, error_text) VALUES (3, 'CRITICAL');
 
