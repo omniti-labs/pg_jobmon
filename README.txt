@@ -23,24 +23,30 @@ add_job(p_job_name text) RETURNS bigint
     Returns the job_id of the new job.
 
 add_step(p_job_id bigint, p_action text) RETURNS bigint
-    Add a new step in the job_detail table to an existing job. Pass it the job_id created by add_job() and a description of the step. 
+    Add a new step in the job_detail table to an existing job. Pass it the job_id
+    created by add_job() and a description of the step. 
     Returns the step_id of the new step.
 
 update_step(p_job_id bigint, p_step_id bigint, p_status text, p_message text) RETURNS void
-    Update the status of the job_id and step_id passed to it. Successful step completion should pass 'OK' for p_status. 
+    Update the status of the job_id and step_id passed to it. Successful step 
+        completion should pass 'OK' for p_status. 
     Unsuccessful step completion should pass 'BAD'.
-    Any other intermediate status can be custom. p_message is for further information on the status of the step.
+    Any other intermediate status can be custom. 
+    p_message is for further information on the status of the step.
 
 close_job(p_job_id bigint) RETURNS void
-    Used to successfully close the given job_id. Sets the end_time and status to 'OK' in the job_log table.
+    Used to successfully close the given job_id. Sets the end_time 
+    and status to 'OK' in the job_log table.
 
 fail_job(p_job_id bigint) RETURNS void
-    Used to unsuccessfully close the given job_id. Sets the end_time and status to 'BAD' in the job_log table.
+    Used to unsuccessfully close the given job_id. Sets the end_time 
+    and status to 'BAD' in the job_log table.
 
 cancel_job(v_job_id bigint) RETURNS boolean
     Used to unsuccessfully terminate the given job_id from outside the running job. 
     Calls pg_cancel_backend() on the pid stored for the job in job_log.
-    Sets the final step to note that it was manually cancelled and sets the step status to 'BAD' in the job_detail table. 
+    Sets the final step to note that it was manually cancelled and sets 
+        the step status to 'BAD' in the job_detail table. 
     Sets the end_time and status to 'BAD' in the job_log table.
 
 Log Tables:
