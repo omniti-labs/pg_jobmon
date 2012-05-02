@@ -83,8 +83,7 @@ have a custom set of statuses that you'd like to use, the close, fail or cancel 
 MONITORING
 ----------
 
-check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text)
-
+*check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text)*  
 The above function takes as a parameter the interval of time that you'd like to go backwards to check for bad jobs. It's recommended not to look back any further than the longest interval that a single job runs to help the check run efficiently. For example, if the longest interval between any job is a week, then pass '1 week'.
 
 The alert_code output indicates one of the following 3 statuses:  
@@ -114,10 +113,11 @@ An example query and output is:
     OK(All jobs run successfully)
 
 
-Monitoring Tables:
-job_check_config
-job_check_log
-job_alert_nagios
+**Monitoring Tables:**
+
+*job_check_config*  
+*job_check_log*  
+*job_alert_nagios*
 
 
 AUTHOR
