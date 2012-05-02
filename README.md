@@ -9,7 +9,7 @@ INSTALLATION
 ------------
 
 Requirements: dblink extension
-Copy the pg_jobmon.control and pg_jobmon--<version>.sql files to your $BASEDIR/share/extension folder. Create schema (not required but recommended) and then install using the PostgreSQL extensions system
+*Still working on getting Makefile ready. For now, rename sql/pg_jobmon.sql to pg_jobmon--0.1.0.sql and copy to the $BASEDIR/share/extension folder*
 
     CREATE SCHEMA jobmon;
     CREATE EXTENSION pg_jobmon SCHEMA jobmon;
