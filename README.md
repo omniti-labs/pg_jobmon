@@ -9,6 +9,7 @@ INSTALLATION
 ------------
 
 Requirements: dblink extension
+
 In directory where you downloaded pg_jobmon to run
 
     make
