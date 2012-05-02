@@ -9,7 +9,12 @@ INSTALLATION
 ------------
 
 Requirements: dblink extension
-*Still working on getting Makefile ready. For now, rename sql/pg_jobmon.sql to pg_jobmon--0.1.0.sql and copy to the $BASEDIR/share/extension folder*
+In directory where you downloaded pg_jobmon to run
+
+    make
+    make install
+
+Log into PostgreSQL and run the following commands. Schema can be whatever you wish, but it cannot be changed after installation.
 
     CREATE SCHEMA jobmon;
     CREATE EXTENSION pg_jobmon SCHEMA jobmon;
@@ -21,8 +26,6 @@ UPGRADE
 Make sure all the upgrade scripts for the version you have installed up to the most recent version are in the $BASEDIR/share/extension folder. 
 
     ALTER EXTENSION pg_jobmon UPDATE TO '<latest version>';
-
-Please note that until this extension is officially announced and put into the OmniTI github repository, there may not be upgrade scripts available.
 
 
 AUTHOR
