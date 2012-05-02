@@ -30,54 +30,53 @@ LOGGING
 By default, the status column updates will use the text values from the job_alert_nagios table in the monitoring section. If you
 have a custom set of statuses that you'd like to use, the close, fail or cancel functions that take a custom table name. 
 
-add_job(p_job_name text) RETURNS bigint
-    Create a new entry in the job_log table. p_job_name is automatically capitalized. 
-    Returns the job_id of the new job.
+*add_job(p_job_name text) RETURNS bigint*  
+    Create a new entry in the job_log table. p_job_name is automatically capitalized.   
+    Returns the job_id of the new job.  
 
-add_step(p_job_id bigint, p_action text) RETURNS bigint
-    Add a new step in the job_detail table to an existing job. Pass it the job_id
-    created by add_job() and a description of the step. 
+*add_step(p_job_id bigint, p_action text) RETURNS bigint*  
+    Add a new step in the job_detail table to an existing job. Pass it the job_id  
+    created by add_job() and a description of the step.  
     Returns the step_id of the new step.
 
-update_step(p_job_id bigint, p_step_id bigint, p_status text, p_message text) RETURNS void
-    Update the status of the job_id and step_id passed to it. 
-    p_message is for further information on the status of the step.
+*update_step(p_job_id bigint, p_step_id bigint, p_status text, p_message text) RETURNS void*  
+    Update the status of the job_id and step_id passed to it.  
+    p_message is for further information on the status of the step.  
 
-close_job(p_job_id bigint) RETURNS void
-    Used to successfully close the given job_id. 
-    Defaults to using job_alert_nagios table status text.
+*close_job(p_job_id bigint) RETURNS void*  
+    Used to successfully close the given job_id.  
+    Defaults to using job_alert_nagios table status text.  
     
-close_job(p_job_id bigint, p_config_table text) RETURNS void
-    Same as above for successfully closing a job but allows you to use custom status 
-    text that you set up in another table. See MONITORING section for more info.
+*close_job(p_job_id bigint, p_config_table text) RETURNS void*  
+    Same as above for successfully closing a job but allows you to use custom status  
+    text that you set up in another table. See MONITORING section for more info.  
 
-fail_job(p_job_id bigint) RETURNS void
-    Used to unsuccessfully close the given job_id.
+*fail_job(p_job_id bigint) RETURNS void*
+    Used to unsuccessfully close the given job_id.  
+    Defaults to using job_alert_nagios table status text.  
+    
+*fail_job(p_job_id bigint, p_config_table text) RETURNS void*  
+    Same as above for unsuccessfully closing a job but allows you to use custom status  
+    text that you set up in another table. See MONITORING section for more info.  
+ 
+*cancel_job(v_job_id bigint) RETURNS boolean*  
+    Used to unsuccessfully terminate the given job_id from outside the running job.  
+    Calls pg_cancel_backend() on the pid stored for the job in job_log.  
+    Sets the final step to note that it was manually cancelled in the job_detail table.  
     Defaults to using job_alert_nagios table status text. 
     
-fail_job(p_job_id bigint, p_config_table text) RETURNS void
-    Same as above for unsuccessfully closing a job but allows you to use custom status 
-    text that you set up in another table. See MONITORING section for more info.
-
-cancel_job(v_job_id bigint) RETURNS boolean
-    Used to unsuccessfully terminate the given job_id from outside the running job. 
-    Calls pg_cancel_backend() on the pid stored for the job in job_log.
-    Sets the final step to note that it was manually cancelled in the job_detail table.
-    Defaults to using job_alert_nagios table status text. 
-    
-cancel_job(v_job_id bigint, p_config_table text) RETURNS boolean
+*cancel_job(v_job_id bigint, p_config_table text) RETURNS boolean*
     Same as above for unsuccessfully, manually cancelling a job but allows you to use custom 
     status text that you set up in another table. See MONITORING section for more info.
 
-Log Tables:
-job_log
-    Logs the overall job details associated with a job_id. Recommended to make
-    partitioned on start_time if you see high logging traffic or don't 
-    need to keep the data indefinitely 
-    
-job_detail
-    Logs the detailed steps of each job_id associated with jobs in job_log. 
-    Recommended to make partitioned on start_time if you see high logging traffic 
+**Log Tables:**  
+
+*job_log*  
+    Logs the overall job details associated with a job_id. Recommended to make partitioned on start_time if you see high logging traffic or don't 
+    need to keep the data indefinitely  
+   
+*job_detail*
+    Logs the detailed steps of each job_id associated with jobs in job_log. Recommended to make partitioned on start_time if you see high logging traffic 
     or don't need to keep the data indefinitely 
     
 
@@ -88,16 +87,17 @@ check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text
 
 The above function takes as a parameter the interval of time that you'd like to go backwards to check for bad jobs. It's recommended not to look back any further than the longest interval that a single job runs to help the check run efficiently. For example, if the longest interval between any job is a week, then pass '1 week'.
 
-The alert_code output indicates one of the following 3 statuses:
--- Return code 1 means a successful job run
--- Return code 2 is for use with jobs that support a warning indicator. 
+The alert_code output indicates one of the following 3 statuses:  
+* Return code 1 means a successful job run  
+* Return code 2 is for use with jobs that support a warning indicator. 
     Not critical, but someone should look into it
--- Return code 3 is for use with a critical job failure 
+* Return code 3 is for use with a critical job failure 
 
-This monitoring function was originally created with nagios in mind. By default, all logging functions use the job_alert_nagios table to associate 
-1 = OK
-2 = WARNING
-3 = CRITICAL
+This monitoring function was originally created with nagios in mind. By default, all logging functions use the job_alert_nagios table to associate  
+ 
+    1 = OK
+    2 = WARNING
+    3 = CRITICAL
 
 If you'd like these alert codes to be associated with other error text, you can create another table and join against it associating the code with whichever text you'd like. Alternate logging functions are available to make sure your logs get these custom statuses as well.
 See LOGGING section.
