@@ -27,7 +27,7 @@
     "resources": {
         "bugtracker": {
             "web": "https://github.com/keithf4/pg_jobmon/issues"
-        }.
+        },
         "repository": {
             "url": "git://github.com/keithf4/pg_jobmon.git" ,
             "web": "https://github.com/keithf4/pg_jobmon",
