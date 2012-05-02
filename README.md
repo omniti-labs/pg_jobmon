@@ -1,8 +1,12 @@
+pg_jobmon
+=========
+
 pg_jobmon is an extension to add the capability to log the progress of running functions and provide a limited monitoring capability to those logged functions. 
 The logging is done in a NON-TRANSACTIONAL method, so that if your function fails for any reason, all steps up to that point are kept in the log tables. The logging portions of the extension should be stable and ready for production use. The monitoring capability is still fairly new and may require adjusting but it should be usable.
 A blog post giving more extensive examples can be found at http://keithf4.com (coming soon)
 
-INSTALLATION:
+INSTALLATION
+------------
 
 Requirements: dblink extension
 Copy the pg_jobmon.control and pg_jobmon--<version>.sql files to your $BASEDIR/share/extension folder. Create schema (not required but recommended) and then install using the PostgreSQL extensions system
@@ -11,14 +15,17 @@ Copy the pg_jobmon.control and pg_jobmon--<version>.sql files to your $BASEDIR/s
     CREATE EXTENSION pg_jobmon SCHEMA jobmon;
 
 
-UPGRADE:
+UPGRADE
+-------
+
 Make sure all the upgrade scripts for the version you have installed up to the most recent version are in the $BASEDIR/share/extension folder. 
 
     ALTER EXTENSION pg_jobmon UPDATE TO '<latest version>';
 
 Please note that until this extension is officially announced and put into the OmniTI github repository, there may not be upgrade scripts available.
 
-LOGGING:
+LOGGING
+-------
 
 By default, the status column updates will use the text values from the job_alert_nagios table in the monitoring section. If you
 have a custom set of statuses that you'd like to use, the close, fail or cancel functions that take a custom table name. 
@@ -74,7 +81,8 @@ job_detail
     or don't need to keep the data indefinitely 
     
 
-MONITORING:
+MONITORING
+----------
 
 check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text)
 
@@ -112,13 +120,16 @@ job_check_log
 job_alert_nagios
 
 
-AUTHOR:
+AUTHOR
+------
+
 Keith Fiske
 OmniTI, Inc - http://www.omniti.com
 keith@omniti.com
 
 
 LICENSE AND COPYRIGHT
+---------------------
 
 PGExtractor is released under the PostgreSQL License, a liberal Open Source license, similar to the BSD or MIT licenses.
 
