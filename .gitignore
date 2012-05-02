@@ -1,5 +1,1 @@
-ebit_joblog_stuff.sql
-ofdw.perform_snapshot_newlogger.sql
-ofdw.perform_snapshot_orig.sql
-pg_jobmon_notes
-ofdw.perform_snapshot_logged.sql
+ignore/*
