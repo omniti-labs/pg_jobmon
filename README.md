@@ -106,12 +106,12 @@ The alert_text output is a more detailed message indicating what the actual jobs
 
 An example query and output is:
 
-select r.error_text || c.alert_text as alert_status from jobmon.check_job_status('3 days') c 
-    join jobmon.job_alert_nagios r on c.alert_code = r.error_code;
+    select r.error_text || c.alert_text as alert_status from jobmon.check_job_status('3 days') c 
+        join jobmon.job_alert_nagios r on c.alert_code = r.error_code;
 
-         alert_status          
--------------------------------
- OK(All jobs run successfully)
+            alert_status          
+    -------------------------------
+    OK(All jobs run successfully)
 
 
 Monitoring Tables:
