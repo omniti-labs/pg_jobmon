@@ -40,7 +40,7 @@ keith@omniti.com
 LICENSE AND COPYRIGHT
 ---------------------
 
-PGExtractor is released under the PostgreSQL License, a liberal Open Source license, similar to the BSD or MIT licenses.
+pg_jobmon is released under the PostgreSQL License, a liberal Open Source license, similar to the BSD or MIT licenses.
 
 Copyright (c) 2012 OmniTI, Inc.
 
