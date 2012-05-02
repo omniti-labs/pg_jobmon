@@ -1,0 +1,47 @@
+{
+    "name": "pg_jobmon",
+    "abstract": "Job logging and monitoring extension",
+    "version": "0.1.0",
+    "maintainer": [ 
+        "Keith Fiske <keith@omniti.com>"
+    ],
+    "license": "postgresql",
+    "generated_by": "Keith Fiske",
+    "release_status": "testing",
+    "prereqs": {
+        "runtime": {
+            "requires": {
+                "PostgreSQL": "9.1.0",
+                "dblink": "1.0.0"
+            }
+        }
+    },
+    "provides": {
+        "pg_jobmon": {
+            "file": "pg_jobmon.sql",
+            "docfile": "readme.md",
+            "version": "0.1.0",
+            "abstract": "Job logging and monitoring extension"
+        }
+    },
+    "resources": {
+        "bugtracker": {
+            "web": "https://github.com/keithf4/pg_jobmon/issues"
+        }.
+        "repository": {
+            "url": "git://github.com/keithf4/pg_jobmon.git" ,
+            "web": "https://github.com/keithf4/pg_jobmon",
+            "type": "git"
+        }
+    },    
+    "meta-spec": {
+      "version": "1.0.0",
+      "url": "http://pgxn.org/meta/spec.txt"
+    },
+    "tags": [
+        "job logging",
+        "job monitoring",
+        "log",
+        "logging"
+    ]
+}
