@@ -143,8 +143,7 @@ BEGIN
 END
 $$;
 
-
-CREATE FUNCTION close_job(p_job_id bigint) RETURNS void
+CREATE FUNCTION close_job(p_job_id bigint, text default '@extschema@.job_alert_nagios') RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -154,25 +153,7 @@ BEGIN
 
     SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
     
-    v_remote_query := 'SELECT @extschema@._autonomous_close_job('||p_job_id||', ''@extschema@.job_alert_nagios'')'; 
-
-    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
-        ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
-END
-$$;
-
-
-CREATE FUNCTION close_job(p_job_id bigint, p_config_table text) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    v_remote_query text;
-    v_dblink_schema text;
-BEGIN
-
-    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
-    
-    v_remote_query := 'SELECT @extschema@._autonomous_close_job('||p_job_id||', '''||p_config_table||''')'; 
+    v_remote_query := 'SELECT @extschema@._autonomous_close_job('||p_job_id||', '''|| $2 ||''')'; 
 
     EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
@@ -199,7 +180,7 @@ END
 $$;
 
 
-CREATE FUNCTION fail_job(p_job_id bigint) RETURNS void
+CREATE FUNCTION fail_job(p_job_id bigint, text default '@extschema@.job_alert_nagios') RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -209,7 +190,7 @@ BEGIN
     
     SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
     
-    v_remote_query := 'SELECT @extschema@._autonomous_fail_job('||p_job_id||', ''@extschema@.job_alert_nagios'')'; 
+    v_remote_query := 'SELECT @extschema@._autonomous_fail_job('||p_job_id||', '''|| $2 ||''')'; 
 
     EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
@@ -218,26 +199,7 @@ END
 $$;
 
 
-CREATE FUNCTION fail_job(p_job_id bigint, p_config_table text) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    v_remote_query text;
-    v_dblink_schema text;
-BEGIN
-    
-    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
-    
-    v_remote_query := 'SELECT @extschema@._autonomous_fail_job('||p_job_id||', '''||p_config_table||''')'; 
-
-    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
-        ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
-
-END
-$$;
-
-
-CREATE FUNCTION cancel_job(p_job_id bigint) RETURNS boolean
+CREATE FUNCTION cancel_job(p_job_id bigint, text default '@extschema@.job_alert_nagios') RETURNS boolean
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -245,33 +207,13 @@ DECLARE
     v_step_id   bigint;
     v_status    text;
 BEGIN
-    EXECUTE 'SELECT error_text FROM @extschema@.job_alert_nagios WHERE error_code = 3'
-        INTO v_status;    
-    SELECT pid INTO v_pid FROM @extschema@.job_log WHERE job_id = p_job_id;
-    PERFORM pg_cancel_backend(v_pid);
-    SELECT max(step_id) INTO v_step_id FROM @extschema@.job_detail WHERE job_id = p_job_id;
-    PERFORM @extschema@._autonomous_update_step(p_job_id, v_step_id, v_status, 'Manually cancelled via call to @extschema@.cancel_job()');
-    PERFORM @extschema@._autonomous_fail_job(p_job_id, '@extschema@.job_alert_nagios');
-    RETURN true;
-END
-$$;
-
-
-CREATE FUNCTION cancel_job(p_job_id bigint, p_config_table text) RETURNS boolean
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    v_pid       integer;
-    v_step_id   bigint;
-    v_status    text;
-BEGIN
-    EXECUTE 'SELECT error_text FROM ' || p_config_table || ' WHERE error_code = 3'
+    EXECUTE 'SELECT error_text FROM ' || $2 || ' WHERE error_code = 3'
         INTO v_status;
     SELECT pid INTO v_pid FROM @extschema@.job_log WHERE job_id = p_job_id;
     PERFORM pg_cancel_backend(v_pid);
     SELECT max(step_id) INTO v_step_id FROM @extschema@.job_detail WHERE job_id = p_job_id;
     PERFORM @extschema@._autonomous_update_step(p_job_id, v_step_id, v_status, 'Manually cancelled via call to @extschema@.cancel_job()');
-    PERFORM @extschema@._autonomous_fail_job(p_job_id, p_config_table);
+    PERFORM @extschema@._autonomous_fail_job(p_job_id, $2);
     RETURN true;
 END
 $$;
@@ -480,7 +422,7 @@ BEGIN
         WHERE job_name = upper(p_name)
         AND status = p_status
         ORDER BY job_id DESC
-        LIMIT $2
+        LIMIT $3
     LOOP
         RETURN NEXT v_job_list; 
     END LOOP;
@@ -510,7 +452,7 @@ END
 $$;
 
 -- Detail by jobname
-CREATE FUNCTION show_detail(p_name text, int default 10) RETURNS SETOF @extschema@.job_detail
+CREATE FUNCTION show_detail(p_name text, int default 1) RETURNS SETOF @extschema@.job_detail
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -550,7 +492,7 @@ BEGIN
         JOIN pg_stat_activity p ON j.pid = p.procpid
         WHERE status IS NULL
         ORDER BY job_id DESC
-        LIMIT $2
+        LIMIT $1
     LOOP
         RETURN NEXT v_job_list; 
     END LOOP;

@@ -4,9 +4,6 @@ pg_jobmon
 LOGGING
 -------
 
-By default, the status column updates will use the text values from the job_alert_nagios table in the monitoring section. If you
-have a custom set of statuses that you'd like to use, the close, fail or cancel functions that take a custom table name. 
-
 *add_job(p_job_name text) RETURNS bigint*  
     Create a new entry in the job_log table. p_job_name is automatically capitalized.   
     Returns the job_id of the new job.  
@@ -19,32 +16,52 @@ have a custom set of statuses that you'd like to use, the close, fail or cancel 
 *update_step(p_job_id bigint, p_step_id bigint, p_status text, p_message text) RETURNS void*  
     Update the status of the job_id and step_id passed to it.  
     p_message is for further information on the status of the step.  
-
-*close_job(p_job_id bigint) RETURNS void*  
-    Used to successfully close the given job_id.  
-    Defaults to using job_alert_nagios table status text.  
     
-*close_job(p_job_id bigint, p_config_table text) RETURNS void*  
-    Same as above for successfully closing a job but allows you to use custom status  
-    text that you set up in another table. See MONITORING section for more info.  
-
-*fail_job(p_job_id bigint) RETURNS void*
-    Used to unsuccessfully close the given job_id.  
-    Defaults to using job_alert_nagios table status text.  
+*close_job(p_job_id bigint, text default 'job_alert_nagios') RETURNS void*  
+    Used to successfully close the given job_id.  
+    Defaults to using job_alert_nagios table status text. You can feed it another table name
+    that allows you to use custom status text that you set up in another table.  
+    See MONITORING section for more info.  
     
 *fail_job(p_job_id bigint, p_config_table text) RETURNS void*  
-    Same as above for unsuccessfully closing a job but allows you to use custom status  
-    text that you set up in another table. See MONITORING section for more info.  
- 
-*cancel_job(v_job_id bigint) RETURNS boolean*  
+    Used to unsuccessfully close the given job_id.  
+    Defaults to using job_alert_nagios table status text. You can feed it another table name
+    that allows you to use custom status text that you set up in another table.  
+    See MONITORING section for more info.  
+    
+*cancel_job(v_job_id bigint, p_config_table text) RETURNS boolean*
     Used to unsuccessfully terminate the given job_id from outside the running job.  
     Calls pg_cancel_backend() on the pid stored for the job in job_log.  
     Sets the final step to note that it was manually cancelled in the job_detail table.  
-    Defaults to using job_alert_nagios table status text. 
+    Defaults to using job_alert_nagios table status text. You can feed it another table name
+    that allows you to use custom status text that you set up in another table.  
+    See MONITORING section for more info.
+
+The below functions all return full rows of the format for the given SETOF table, which means you can treat them as tables as far as filtering the result. For all functions that have a default integer parameter at the end, this signifies a default limit on the number of rows returned. You can change this as desired, or just leave out that parameter to get the default limit.
+All show functions also automatically uppercase all parameters to be consistent with above logging functions.
+
+*show_job(p_name text, int default 10) RETURNS SETOF job_log*  
+    Return all jobs from job_log that match the given job name. 
+
+*show_job_like(p_name text, int default 10) RETURNS SETOF job_log*  
+    Return all jobs from job_log that contain the given text somewhere in the job name (does a ~ match).
+
+*show_job_status(p_status text, int default 10) RETURNS SETOF job_log*  
+    Return all jobs from job_log matching the given status.
+
+*show_job_status(p_name text, p_status text, int default 10) RETURNS SETOF @extschema@.job_log*  
+    Return all jobs from job_log that match both the given job name and given status.
+
+*show_detail(p_id bigint) RETURNS SETOF @extschema@.job_detail*  
+    Return the full log from job_detail for the given job id.
+
+*show_detail(p_name text, int default 1) RETURNS SETOF @extschema@.job_detail*  
+    Return the full log from job_detail matching the given job name. By default returns only the most recent job details.  
+    Given a higher limit, it will return all individual job details in descending job id order.
+
+*show_running(int default 10) RETURNS SETOF @extschema@.job_log*  
+    Returns the details from job_log for any currently running jobs that use pg_jobmon.
     
-*cancel_job(v_job_id bigint, p_config_table text) RETURNS boolean*
-    Same as above for unsuccessfully, manually cancelling a job but allows you to use custom 
-    status text that you set up in another table. See MONITORING section for more info.
 
 **Log Tables:**  
 
