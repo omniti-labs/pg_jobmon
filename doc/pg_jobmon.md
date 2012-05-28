@@ -20,22 +20,19 @@ LOGGING
 *close_job(p_job_id bigint, text default 'job_alert_nagios') RETURNS void*  
     Used to successfully close the given job_id.  
     Defaults to using job_alert_nagios table status text. You can feed it another table name
-    that allows you to use custom status text that you set up in another table.  
-    See MONITORING section for more info.  
+    that allows you to use custom status text that you set up in another table. See MONITORING section for more info.  
     
 *fail_job(p_job_id bigint, p_config_table text) RETURNS void*  
     Used to unsuccessfully close the given job_id.  
     Defaults to using job_alert_nagios table status text. You can feed it another table name
-    that allows you to use custom status text that you set up in another table.  
-    See MONITORING section for more info.  
+    that allows you to use custom status text that you set up in another table. See MONITORING section for more info.  
     
 *cancel_job(v_job_id bigint, p_config_table text) RETURNS boolean*  
     Used to unsuccessfully terminate the given job_id from outside the running job.  
     Calls pg_cancel_backend() on the pid stored for the job in job_log.  
     Sets the final step to note that it was manually cancelled in the job_detail table.  
     Defaults to using job_alert_nagios table status text. You can feed it another table name
-    that allows you to use custom status text that you set up in another table.  
-    See MONITORING section for more info.
+    that allows you to use custom status text that you set up in another table. See MONITORING section for more info.
 
 The below functions all return full rows of the format for the given SETOF table, which means you can treat them as tables as far as filtering the result. For all functions that have a default integer parameter at the end, this signifies a default limit on the number of rows returned. You can change this as desired, or just leave out that parameter to get the default limit.
 All show functions also automatically uppercase the job name parameter to be consistent with the add_job function.
