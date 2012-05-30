@@ -40,17 +40,17 @@ All show functions also automatically uppercase the job name parameter to be con
 *show_job_status(p_status text, int default 10) RETURNS SETOF job_log*  
     Return all jobs from job_log matching the given status. Automatically sorts to get the most recent jobs first, so by default gets the first 10 matching jobs
 
-*show_job_status(p_name text, p_status text, int default 10) RETURNS SETOF @extschema@.job_log*  
+*show_job_status(p_name text, p_status text, int default 10) RETURNS SETOF job_log*  
     Return all jobs from job_log that match both the given job name and given status. Automatically sorts to get the most recent jobs first, so by default gets the first 10 matching jobs
 
-*show_detail(p_id bigint) RETURNS SETOF @extschema@.job_detail*  
+*show_detail(p_id bigint) RETURNS SETOF job_detail*  
     Return the full log from job_detail for the given job id. 
 
-*show_detail(p_name text, int default 1) RETURNS SETOF @extschema@.job_detail*  
+*show_detail(p_name text, int default 1) RETURNS SETOF job_detail*  
     Return the full log from job_detail matching the given job name. By default returns only the most recent job details.  
     Given a higher limit, it will return all individual job details in descending job id order.
 
-*show_running(int default 10) RETURNS SETOF @extschema@.job_log*  
+*show_running(int default 10) RETURNS SETOF job_log*  
     Returns data from job_log for any currently running jobs that use pg_jobmon.
     
 
