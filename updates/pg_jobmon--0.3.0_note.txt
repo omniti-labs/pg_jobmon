@@ -1,0 +1,6 @@
+IMPORTANT NOTE: Version 0.3.0 introduced backward incompatibilities and a direct upgrade is not possible. Please backup data tables and reinstall extension. 
+All constraints were given specific names so future updates can more easily be done using the extension system. 
+update_step() parameters have changed.
+close, fail and cancel functions can no longer take a custom config table. Was a nice idea but doesn't work as I'd hoped.
+job_alert_nagios table changed to job_status_text.
+job_detail elapsed_time column data type changed.
