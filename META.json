@@ -26,11 +26,11 @@
     },
     "resources": {
         "bugtracker": {
-            "web": "https://github.com/keithf4/pg_jobmon/issues"
+            "web": "https://github.com/omniti-labs/pg_jobmon/issues"
         },
         "repository": {
-            "url": "git://github.com/keithf4/pg_jobmon.git" ,
-            "web": "https://github.com/keithf4/pg_jobmon",
+            "url": "git://github.com/omniti-labs/pg_jobmon.git" ,
+            "web": "https://github.com/omniti-labs/pg_jobmon",
             "type": "git"
         }
     },    
