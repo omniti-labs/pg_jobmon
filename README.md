@@ -19,6 +19,18 @@ Log into PostgreSQL and run the following commands. Schema can be whatever you w
     CREATE SCHEMA jobmon;
     CREATE EXTENSION pg_jobmon SCHEMA jobmon;
 
+To allow non-superusers to use dblink, you'll need to enter role credentials into the dblink_mapping table that pg_jobmon installs.
+    
+    INSERT INTO jobmon.dblink_mapping VALUES ('rolename', 'rolepassword');
+
+The following permissions should be given to the above role (substitude relevant schema names as appropriate):
+    
+    grant usage on schema jobmon to rolename;
+    grant usage on schema dblink to rolename;
+    grant select, insert, update, delete on all tables in schema jobmon to rolename;
+    grant execute on all functions in schema jobmon to rolename;
+    grant all on all sequences in schema jobmon to rolename;
+
 
 UPGRADE
 -------

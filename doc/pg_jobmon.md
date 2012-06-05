@@ -63,6 +63,9 @@ All show functions also automatically uppercase the job name parameter to be con
 *job_detail*
     Logs the detailed steps of each job_id associated with jobs in job_log. Recommended to make partitioned on start_time if you see high logging traffic 
     or don't need to keep the data indefinitely 
+
+*dblink_mapping*
+    Configuration table for storing dblink credentials. Allows non-superusers to use this extension.
     
 
 MONITORING

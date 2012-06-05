@@ -57,6 +57,13 @@ CREATE TABLE job_check_log (
 SELECT pg_catalog.pg_extension_config_dump('job_check_log', '');
 
 
+CREATE TABLE dblink_mapping (
+    username text NOT NULL,
+    pwd text
+);
+SELECT pg_catalog.pg_extension_config_dump('dblink_mapping', '');
+
+
 CREATE TABLE job_check_config (
     job_name text NOT NULL,
     warn_threshold interval NOT NULL,
@@ -81,6 +88,34 @@ INSERT INTO job_status_text (error_code, error_text) VALUES (3, 'CRITICAL');
 
 
 -- ########## pg_jobmon extension function definitions ##########
+/*
+ *  dblink Authentication mapping
+ */
+CREATE FUNCTION auth() RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_username  text;
+    v_password  text;
+    v_auth      text;
+BEGIN
+    SELECT username, pwd INTO v_username, v_password FROM @extschema@.dblink_mapping;
+    IF v_username IS NULL THEN
+        RETURN '';
+    END IF;
+
+    v_auth := 'user='||v_username;
+    IF v_password IS NOT NULL THEN
+        v_auth := v_auth || ' password='||v_password;
+    END IF;
+    v_auth := v_auth || ' ';
+    RETURN v_auth;    
+END
+$$;
+
+/*
+ *  Add Job Autonmous
+ */
 CREATE FUNCTION _autonomous_add_job(p_owner text, p_job_name text, p_pid integer) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
@@ -114,7 +149,7 @@ BEGIN
         quote_literal(p_job_name) || ',' ||
         pg_backend_pid() || ')';
 
-    EXECUTE 'SELECT job_id FROM ' || v_dblink_schema || '.dblink(''dbname='|| current_database() ||
+    EXECUTE 'SELECT job_id FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
         ''','|| quote_literal(v_remote_query) || ',TRUE) t (job_id int)' INTO v_job_id;      
 
     IF v_job_id IS NULL THEN
@@ -162,7 +197,7 @@ BEGIN
         p_job_id || ',' ||
         quote_literal(p_action) || ')';
 
-    EXECUTE 'SELECT step_id FROM ' || v_dblink_schema || '.dblink(''dbname='|| current_database() ||
+    EXECUTE 'SELECT step_id FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
         ''','|| quote_literal(v_remote_query) || ',TRUE) t (step_id int)' INTO v_step_id;      
 
     IF v_step_id IS NULL THEN
@@ -210,7 +245,7 @@ BEGIN
     quote_literal(p_status) || ',' ||
     quote_literal(p_message) || ')';
 
-    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
         ''','|| quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 END
 $$;
@@ -251,7 +286,7 @@ BEGIN
     
     v_remote_query := 'SELECT @extschema@._autonomous_close_job('||p_job_id||')'; 
 
-    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 END
 $$;
@@ -292,7 +327,7 @@ BEGIN
     
     v_remote_query := 'SELECT @extschema@._autonomous_fail_job('||p_job_id||')'; 
 
-    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink(''dbname=' || current_database() ||
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
         ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 
 END
