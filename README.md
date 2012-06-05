@@ -23,6 +23,11 @@ To allow non-superusers to use dblink, you'll need to enter role credentials int
     
     INSERT INTO jobmon.dblink_mapping VALUES ('rolename', 'rolepassword');
 
+Ensure you add the relevant line to the pg_hba.conf file for this role. It will be connecting back to the same postgres database locally.
+    
+    # TYPE  DATABASE       USER            ADDRESS                 METHOD
+    local   dbname         rolename                                md5
+
 The following permissions should be given to the above role (substitude relevant schema names as appropriate):
     
     grant usage on schema jobmon to rolename;
