@@ -389,7 +389,7 @@ CREATE TRIGGER trg_job_monitor AFTER UPDATE ON job_log FOR EACH ROW EXECUTE PROC
  * Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
  * Return code 3 is for use with a critical job failure 
  */
-CREATE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
+CREATE OR REPLACE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -438,8 +438,7 @@ BEGIN
                     END AS job_status
                 FROM
                     @extschema@.job_check_config 
-                    LEFT JOIN (
-                                SELECT
+                    LEFT JOIN (SELECT
                                     job_name,
                                     max(start_time) AS start_time 
                                 FROM
@@ -449,8 +448,7 @@ BEGIN
                                 GROUP BY 
                                     job_name 
                                 ) last_job using (job_name)
-                    LEFT JOIN (
-                                SELECT 
+                    LEFT JOIN (SELECT 
                                     job_name,    
                                     start_time, 
                                     coalesce(status,
@@ -485,7 +483,9 @@ LOOP
         END IF; 
     END IF;
     
-    alert_text := alert_text || '; ';
+    IF alert_text != '(' THEN
+        alert_text := alert_text || '; ';
+    END IF;
 
 END LOOP;
 
