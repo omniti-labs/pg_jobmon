@@ -11,7 +11,6 @@ CREATE TABLE job_log (
     pid integer NOT NULL,
     CONSTRAINT job_log_job_id_pkey PRIMARY KEY (job_id)
 );
-SELECT pg_catalog.pg_extension_config_dump('job_log', '');
 CREATE INDEX job_log_job_name_idx ON job_log (job_name);
 CREATE INDEX job_log_start_time_idx ON job_log (start_time);
 CREATE INDEX job_log_status_idx ON job_log (status);
@@ -38,7 +37,6 @@ CREATE TABLE job_detail (
     CONSTRAINT job_detail_step_id_pkey PRIMARY KEY (step_id),
     CONSTRAINT job_detail_job_id_fkey FOREIGN KEY (job_id) REFERENCES job_log(job_id)
 );
-SELECT pg_catalog.pg_extension_config_dump('job_detail', '');
 CREATE INDEX job_detail_job_id_idx ON job_detail (job_id);
 CREATE SEQUENCE job_detail_step_id_seq
     START WITH 1
