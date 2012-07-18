@@ -46,6 +46,7 @@ Make sure all the upgrade scripts for the version you have installed up to the m
 
     ALTER EXTENSION pg_jobmon UPDATE TO '<latest version>';
 
+For detailed change logs of each version, please see the top of each update script.
 
 AUTHOR
 ------

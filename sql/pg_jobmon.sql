@@ -420,33 +420,34 @@ BEGIN
     FOR v_jobs IN 
                 SELECT
                     job_name,
-                    status, 
                     current_timestamp,
-                    current_timestamp - start_time AS last_run_time,  
+                    current_timestamp - end_time AS last_run_time,  
                     CASE
                         WHEN (SELECT count(*) FROM @extschema@.job_check_log WHERE job_name = job_check_config.job_name) > sensitivity THEN 'ERROR'  
-                        WHEN start_time < (current_timestamp - error_threshold) THEN 'ERROR' 
-                        WHEN start_time < (current_timestamp - warn_threshold) THEN 'WARNING'
+                        WHEN end_time < (current_timestamp - error_threshold) THEN 'ERROR' 
+                        WHEN end_time < (current_timestamp - warn_threshold) THEN 'WARNING'
                         ELSE 'OK'
                     END AS error_code,
                     CASE
                         WHEN status = v_alert_code_3 THEN 'CRITICAL'
                         WHEN status is null THEN 'MISSING' 
-                        WHEN (start_time < current_timestamp - error_threshold) OR (start_time < current_timestamp - warn_threshold) THEN 
+                        WHEN (end_time < current_timestamp - error_threshold) OR (end_time < current_timestamp - warn_threshold) THEN 
                             CASE 
                                 WHEN status = 'OK' THEN 'MISSING'
-                                else status
+                                ELSE status
                             END
+                        ELSE status
                     END AS job_status
                 FROM
                     @extschema@.job_check_config 
                     LEFT JOIN (SELECT
                                     job_name,
-                                    max(start_time) AS start_time 
+                                    max(start_time) AS start_time,
+                                    max(end_time) AS end_time 
                                 FROM
                                     @extschema@.job_log
                                 WHERE
-                                    start_time > now() - p_history
+                                    (end_time > now() - p_history OR end_time IS NULL)
                                 GROUP BY 
                                     job_name 
                                 ) last_job using (job_name)
@@ -467,22 +468,28 @@ LOOP
 
     IF v_jobs.error_code = 'ERROR' THEN
         alert_code := 3;
-        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??') || '; ';
+        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??');
     END IF;
 
     IF v_jobs.error_code = 'WARNING' THEN
         IF alert_code <> 3 THEN
             alert_code := 2;
         END IF;
-        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??') || '; ';
+        alert_text := alert_text || v_jobs.job_name || ': ' || coalesce(v_jobs.job_status,'null??');
     END IF;
     
-    IF v_jobs.job_status = 'MISSING' THEN
+    IF v_jobs.job_status = 'BLOCKED' THEN
+         alert_text := alert_text || ' - Object lock is blocking job completion';
+    ELSIF v_jobs.job_status = 'MISSING' THEN
         IF v_jobs.last_run_time IS NULL THEN  
-            alert_text := alert_text || ' - Last run over ' || p_history || ' ago. Check job_log for more details; ';
+            alert_text := alert_text || ' - Last run over ' || p_history || ' ago. Check job_log for more details';
         ELSE
-            alert_text := alert_text || ' - Last run at ' || current_timestamp - v_jobs.last_run_time || '; ';
-        END IF; 
+            alert_text := alert_text || ' - Last run at ' || current_timestamp - v_jobs.last_run_time;
+        END IF;
+    END IF;
+
+    IF alert_code <> 1 AND v_jobs.job_status <> 'OK' THEN
+        alert_text := alert_text || '; ';
     END IF;
 
 END LOOP;
