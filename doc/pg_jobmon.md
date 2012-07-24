@@ -129,5 +129,5 @@ Table of jobs that require special job monitoring other than 3 consecutive failu
 *job_check_log*  
 This table is used to record the job_id and job_name automatically whenever the status column of job_log contains the text value for alert level 3. You never have to insert or delete from this table. A trigger on job_log handles this. 
 
-*job_status_text*
+*job_status_text*  
 Table containing the text values for the alert levels. Defaults are listed above. Change the alert_text column for each code to have custom statuses used for the status column in job_log. 
