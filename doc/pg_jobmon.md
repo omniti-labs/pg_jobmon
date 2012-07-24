@@ -16,6 +16,13 @@ LOGGING
 *update_step(p_step_id bigint, p_status text, p_message text) RETURNS void*  
     Update the status of the step_id passed to it.  
     p_message is for further information on the status of the step.  
+
+*sql_step(p_job_id bigint, p_action text, p_sql text) RETURNS boolean*  
+    Logs a full step for a given sql query. Logs the number of rows affected. Simple function for when you don't need to log extensive details of a single query.  
+    p_job_id is the job id to log this step with.  
+    p_action is for the action column in job_detail.  
+    p_sql is the full sql query to be run
+    Returns true/false so you can check how the step ran and continue handling the rest of your job appropriately.
     
 *close_job(p_job_id bigint) RETURNS void*  
     Used to successfully close the given job_id.   
@@ -27,6 +34,12 @@ LOGGING
     Used to unsuccessfully terminate the given job_id from outside the running job.  
     Calls pg_cancel_backend() on the pid stored for the job in job_log.  
     Sets the final step to note that it was manually cancelled in the job_detail table.  
+
+*sql_job(p_job_name text, p_sql text) RETURNS text*  
+    Log a complete job for a given query. Records the number of rows affected. Also ensures that the job cannot run concurrently with itself.  
+    p_job_name is the job name that will be recorded in job_log.  
+    p_sql is the full sql query to be run.  
+    Returns the job id that was created for this job and whether the job was successful.
 
 The below functions all return full rows of the format for the given SETOF table, which means you can treat them as tables as far as filtering the result. For all functions that have a default integer parameter at the end, this signifies a default limit on the number of rows returned. You can change this as desired, or just leave out that parameter to get the default limit.  
 All show functions also automatically uppercase the job name parameter to be consistent with the add_job function.
@@ -106,5 +119,15 @@ An example query and output is:
 **Monitoring Tables:**
 
 *job_check_config*  
+Table of jobs that require special job monitoring other than 3 consecutive failures (this is done by default).
+ * job_name - This is the EXACT job name as it appears in the job_log table. It is case sensitive, so jobs entered here should be in all caps. Easiest thing to do is just copy the job name right from the job_log table.
+ * warn_threshold - This is the interval of time that can pass without the job running before alert_code 2 is returned by check_job_status()
+ * error_threshold - This is the interval of time that can pass without the job running before alert_code 3 is returned by check_job_status()
+ * active - Set this to TRUE if you want check_job_status() to actively monitor this job. Set to FALSE to disable checking without removing the data from the config table
+ * sensitivity - This is the number of times the job can fail (status column in job_log is the text value of alert_code 3, CRITICAL by default) before alert_code 3 is returned by check_job_status(). Note that if you want this to return immediately on the first failure, set it to zero, not one.
+
 *job_check_log*  
-*job_alert_nagios*
+This table is used to record the job_id and job_name automatically whenever the status column of job_log contains the text value for alert level 3. You never have to insert or delete from this table. A trigger on job_log handles this. 
+
+*job_status_text*
+Table containing the text values for the alert levels. Defaults are listed above. Change the alert_text column for each code to have custom statuses used for the status column in job_log. 
