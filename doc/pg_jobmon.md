@@ -41,6 +41,10 @@ LOGGING
     p_sql is the full sql query to be run.  
     Returns the job id that was created for this job and whether the job was successful.
 
+*job_log_clear(p_interval interval) RETURNS void*  
+    Deletes all jobs in job_log and job_detail tables older than the given interval.
+    Also logs this task as another job itself.
+
 The below functions all return full rows of the format for the given SETOF table, which means you can treat them as tables as far as filtering the result. For all functions that have a default integer parameter at the end, this signifies a default limit on the number of rows returned. You can change this as desired, or just leave out that parameter to get the default limit.  
 All show functions also automatically uppercase the job name parameter to be consistent with the add_job function.
 
