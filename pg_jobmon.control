@@ -1,4 +1,4 @@
-default_version = '0.4.0'
+default_version = '0.4.1'
 comment = 'Extension for logging and monitoring jobs in PostgreSQL'
 requires = dblink
 relocatable = false
