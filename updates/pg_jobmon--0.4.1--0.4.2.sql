@@ -1,0 +1,2 @@
+-- No code changes to extension itself. Restructured sql file organization and modified Makefile to handle it accordingly.
+-- Did make the cancel_job test a little clearer on what to do in the testjob function.
