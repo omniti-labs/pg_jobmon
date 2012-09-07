@@ -18,6 +18,7 @@
     },
     "provides": {
         "pg_jobmon": {
+            "file": "sql/pg_jobmon--0.4.3.sql",
             "docfile": "doc/pg_jobmon.md",
             "version": "0.4.3",
             "abstract": "Job logging and monitoring extension"
