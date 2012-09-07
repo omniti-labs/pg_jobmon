@@ -21,7 +21,7 @@ $$;
 /*
  *  Update Step
  */
-CREATE FUNCTION update_step(p_step_id bigint, p_status text, p_message text) RETURNS void
+CREATE OR REPLACE FUNCTION update_step(p_step_id bigint, p_status text, p_message text) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -35,7 +35,7 @@ BEGIN
     quote_literal(p_status) || ',' ||
     quote_literal(p_message) || ')';
 
-    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
-        ''','|| quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('||quote_literal(@extschema@.auth())||
+        ','|| quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 END
 $$;

@@ -19,7 +19,7 @@ $$;
 /*
  *  Add Job
  */
-CREATE FUNCTION add_job(p_job_name text) RETURNS bigint
+CREATE OR REPLACE FUNCTION add_job(p_job_name text) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE 
@@ -34,8 +34,8 @@ BEGIN
         quote_literal(p_job_name) || ',' ||
         pg_backend_pid() || ')';
 
-    EXECUTE 'SELECT job_id FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
-        ''','|| quote_literal(v_remote_query) || ',TRUE) t (job_id int)' INTO v_job_id;      
+    EXECUTE 'SELECT job_id FROM ' || v_dblink_schema || '.dblink('||quote_literal(@extschema@.auth())||
+        ','|| quote_literal(v_remote_query) || ',TRUE) t (job_id int)' INTO v_job_id;      
 
     IF v_job_id IS NULL THEN
         RAISE EXCEPTION 'Job creation failed';

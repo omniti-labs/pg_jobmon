@@ -19,7 +19,7 @@ $$;
 /*
  *  Add Step
  */
-CREATE FUNCTION add_step(p_job_id bigint, p_action text) RETURNS bigint
+CREATE OR REPLACE FUNCTION add_step(p_job_id bigint, p_action text) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE 
@@ -35,8 +35,8 @@ BEGIN
         p_job_id || ',' ||
         quote_literal(p_action) || ')';
 
-    EXECUTE 'SELECT step_id FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
-        ''','|| quote_literal(v_remote_query) || ',TRUE) t (step_id int)' INTO v_step_id;      
+    EXECUTE 'SELECT step_id FROM ' || v_dblink_schema || '.dblink('||quote_literal(@extschema@.auth())||
+        ','|| quote_literal(v_remote_query) || ',TRUE) t (step_id int)' INTO v_step_id;      
 
     IF v_step_id IS NULL THEN
         RAISE EXCEPTION 'Job creation failed';

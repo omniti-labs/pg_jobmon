@@ -22,7 +22,7 @@ $$;
 /*
  *  Close Job
  */
-CREATE FUNCTION close_job(p_job_id bigint) RETURNS void
+CREATE OR REPLACE FUNCTION close_job(p_job_id bigint) RETURNS void
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -34,7 +34,7 @@ BEGIN
     
     v_remote_query := 'SELECT @extschema@._autonomous_close_job('||p_job_id||')'; 
 
-    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('''||@extschema@.auth()||'dbname='|| current_database() ||
-        ''',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('||quote_literal(@extschema@.auth())||
+        ',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
 END
 $$;

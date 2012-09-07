@@ -82,10 +82,10 @@ The job_log and job_detail table data WILL NOT be exported by a pg_dump. The ext
    
 *job_detail*
     Logs the detailed steps of each job_id associated with jobs in job_log. Recommended to make partitioned on start_time if you see high logging traffic 
-    or don't need to keep the data indefinitely 
+    or don't need to keep the data indefinitely  
 
 *dblink_mapping*
-    Configuration table for storing dblink credentials. Allows non-superusers to use this extension.
+    Configuration table for storing dblink connection info. Allows non-superusers to use this extension and changing the port of the cluster running pg_jobmon.  
     
 
 MONITORING
