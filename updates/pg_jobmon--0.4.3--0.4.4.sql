@@ -1,13 +1,6 @@
-/*
- *  Check Job status
- *
- * p_history is how far into job_log's past the check will go. Don't go further back than the longest job's interval that is contained
- *      in job_check_config to keep check efficient
- * Return code 1 means a successful job run
- * Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
- * Return code 3 is for use with a critical job failure 
- */
-CREATE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
+-- Update monitor function to handle procpid column name change to pid in pg_stat_activity
+
+CREATE OR REPLACE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
     LANGUAGE plpgsql
     AS $$
 DECLARE
