@@ -1,3 +1,8 @@
+-- Updated show_running() function to be compatible with PostgreSQL 9.2
+-- Updated Makefile to allow setting of grep binary if needed during building.
+-- Created CHANGELOG file.
+
+
 /*
  *  Show Currently Running Jobs
  */

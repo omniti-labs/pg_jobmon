@@ -1,0 +1,56 @@
+0.4.5
+-- Updated show_running() function to be compatible with PostgreSQL 9.2
+-- Updated Makefile to allow setting of grep binary if needed during building.
+-- Created CHANGELOG file.
+
+
+0.4.4
+-- Update monitor function to handle procpid column name change to pid in pg_stat_activity
+
+
+0.4.3
+-- Added port column to dblink_mapping table to allow changing the default port.
+
+
+0.4.2
+-- No code changes to extension itself. Restructured sql file organization and modified Makefile to handle it accordingly.
+-- Did make the cancel_job test a little clearer on what to do in the testjob function.
+
+
+0.4.1
+-- Created job_log_clear() function to clear log data previous to a given interval. Logs it too!
+-- Fixed job_detail table to have ON DELETE CASCADE foreign key to make this function easier to write
+
+
+0.4.0
+-- Adds sql_job() and sql_step() functions for simple query logging.
+
+
+0.3.5
+-- Fixed check_job_status to use the end_time instead of the start_time in job_log to determine the last run of a job. Also more clearly lets you know if a job is blocked by an object lock
+
+
+0.3.4
+-- Make column names in job_status_text table more consistent with the check_job_status() function return column names.
+-- Fix check_job_status() returning extra spaces and ; in the alert_text when a job has failed
+-- Fix check_job_status() to use alert_text value for code 3 instead of hardcoded value 'CRITICAL'
+
+
+0.3.3
+-- See update sql file for important instructions.
+-- Turn off the dump of table data for the log tables. pg_dump isn't handling this properly and will dump all the data out for these tables even in a --schema-only dump.
+-- Data for other tables is minimal, and more critical, so not removing their dump settings.
+-- Data for these tables can be dumped if it's needed by temporarily removing the table from the extention and then adding it back.
+
+
+0.3.2
+-- Fixed bug in check_job_status result when all jobs were ok
+
+
+0.3.0
+IMPORTANT NOTE: Version 0.3.0 introduced backward incompatibilities and a direct upgrade is not possible. Please backup data tables and reinstall extension. 
+All constraints were given specific names so future updates can more easily be done using the extension system. 
+update_step() parameters have changed.
+close, fail and cancel functions can no longer take a custom config table. Was a nice idea but doesn't work as I'd hoped.
+job_alert_nagios table changed to job_status_text.
+job_detail elapsed_time column data type changed.
