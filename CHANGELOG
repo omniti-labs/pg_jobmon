@@ -1,3 +1,11 @@
+1.0.0
+-- IMPORTANT NOTE: fail_job() & _autonomous_fail_job() functions have been dropped and recreated with new arguments. Please check function permissions before and after update.
+-- fail_job() can now take an optional second argument to set the final alert code level that the job should fail with in the job_log table. Allows jobs to fail with level 2 (WARNING) instead of only level 3 (CRITICAL). Default is level 3.
+-- New check_job_status() function that doesn't require an argument. Will automatically get longest threshold interval from job_check_config table if it exists and use that. Recommend using only this version of fuction from now on.
+-- check_job_status(interval) will now throw an exception if you pass an interval that is shorter than the longest job period that is being monitored. If nothing is set in the config table, interval doesn't matter, so will just run normally checking for 3 consecutive failures. Changed documentation to only mention the no-argument version since that's the safest/easiest way to use it.
+-- Added ability for check_job_status() to monitor for three level 2 alerts in a row. Added another column to job_check_log table to track alert level of the job failure. Fixed trigger function on job_log table to set the alert level in job_check_log.
+
+
 0.4.5
 -- Updated show_running() function to be compatible with PostgreSQL 9.2
 -- Updated Makefile to allow setting of grep binary if needed during building.

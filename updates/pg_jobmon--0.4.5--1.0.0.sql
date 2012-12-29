@@ -1,3 +1,42 @@
+-- IMPORTANT NOTE: fail_job() & _autonomous_fail_job() functions have been dropped and recreated with new arguments. Please check function permissions before and after update.
+-- fail_job() can now take an optional second argument to set the final alert code level that the job should fail with in the job_log table. Allows jobs to fail with level 2 (WARNING) instead of only level 3 (CRITICAL). Default is level 3.
+-- New check_job_status() function that doesn't require an argument. Will automatically get longest threshold interval from job_check_config table if it exists and use that. Recommend using only this version of fuction from now on.
+-- check_job_status(interval) will now throw an exception if you pass an interval that is shorter than the longest job period that is being monitored. If nothing is set in the config table, interval doesn't matter, so will just run normally checking for 3 consecutive failures. Changed documentation to only mention the no-argument version since that's the safest/easiest way to use it.
+-- Added ability for check_job_status() to monitor for three level 2 alerts in a row. Added another column to job_check_log table to track alert level of the job failure. Fixed trigger function on job_log table to set the alert level in job_check_log.
+
+ALTER TABLE @extschema@.job_check_log ADD alert_code int DEFAULT 3 NOT NULL;
+DROP FUNCTION @extschema@._autonomous_fail_job(bigint);
+DROP FUNCTION @extschema@.fail_job(bigint);
+
+/*
+ *  Job Monitor Trigger
+ */
+CREATE OR REPLACE FUNCTION job_monitor() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_bad   text;
+    v_ok    text;
+    v_warn  text;
+BEGIN
+    SELECT alert_text INTO v_ok FROM @extschema@.job_status_text WHERE alert_code = 1;
+    SELECT alert_text INTO v_warn FROM @extschema@.job_status_text WHERE alert_code = 2;
+    SELECT alert_text INTO v_bad FROM @extschema@.job_status_text WHERE alert_code = 3;
+    IF NEW.status = v_ok THEN
+        DELETE FROM @extschema@.job_check_log WHERE job_name = NEW.job_name;
+    ELSIF NEW.status = v_warn THEN
+        INSERT INTO @extschema@.job_check_log (job_id, job_name, alert_code) VALUES (NEW.job_id, NEW.job_name, 2);        
+    ELSIF NEW.status = v_bad THEN
+        INSERT INTO @extschema@.job_check_log (job_id, job_name, alert_code) VALUES (NEW.job_id, NEW.job_name, 3);
+    ELSE
+        -- Do nothing
+    END IF;
+
+    return null;
+END
+$$;
+
+
 /*
  * Helper function to allow calling without an argument. See below for full function
  */
@@ -35,7 +74,7 @@ $$;
  * Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
  * Return code 3 is for use with a critical job failure 
  */
-CREATE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
+CREATE OR REPLACE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -237,5 +276,73 @@ END IF;
 
 alert_text := alert_text || ')';
 
+END
+$$;
+
+
+/*
+ *  Fail Job Autonomous
+ */
+CREATE FUNCTION _autonomous_fail_job(p_job_id bigint, p_fail_level int) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_numrows integer;
+    v_status text;
+BEGIN
+    EXECUTE 'SELECT alert_text FROM @extschema@.job_status_text WHERE alert_code = '||p_fail_level
+        INTO v_status;
+    UPDATE @extschema@.job_log SET
+        end_time = current_timestamp,
+        status = v_status
+    WHERE job_id = p_job_id;
+    GET DIAGNOSTICS v_numrows = ROW_COUNT;
+    RETURN v_numrows;
+END
+$$;
+
+/*
+ *  Fail Job
+ */
+CREATE FUNCTION fail_job(p_job_id bigint, p_fail_level int DEFAULT 3) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_remote_query text;
+    v_dblink_schema text;
+BEGIN
+    
+    SELECT nspname INTO v_dblink_schema FROM pg_namespace n, pg_extension e WHERE e.extname = 'dblink' AND e.extnamespace = n.oid;
+    
+    v_remote_query := 'SELECT @extschema@._autonomous_fail_job('||p_job_id||', '||p_fail_level||')'; 
+
+    EXECUTE 'SELECT devnull FROM ' || v_dblink_schema || '.dblink('||quote_literal(@extschema@.auth())||
+        ',' || quote_literal(v_remote_query) || ',TRUE) t (devnull int)';  
+
+END
+$$;
+
+
+/*
+ *  Cancel Job
+ */
+CREATE OR REPLACE FUNCTION cancel_job(p_job_id bigint) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_current_role  text;
+    v_pid           integer;
+    v_step_id       bigint;
+    v_status        text;
+BEGIN
+    EXECUTE 'SELECT alert_text FROM @extschema@.job_status_text WHERE alert_code = 3'
+        INTO v_status;
+    SELECT pid INTO v_pid FROM @extschema@.job_log WHERE job_id = p_job_id;
+    SELECT current_user INTO v_current_role;
+    PERFORM pg_cancel_backend(v_pid);
+    SELECT max(step_id) INTO v_step_id FROM @extschema@.job_detail WHERE job_id = p_job_id;
+    PERFORM @extschema@._autonomous_update_step(v_step_id, v_status, 'Manually cancelled via call to @extschema@.cancel_job() by '||v_current_role);
+    PERFORM @extschema@._autonomous_fail_job(p_job_id, 3);
+    RETURN true;
 END
 $$;

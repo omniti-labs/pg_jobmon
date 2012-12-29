@@ -30,7 +30,22 @@ BEGIN
 /*    FOR v_tmp IN SELECT col1, col2 FROM tmp_test LOOP
         RAISE NOTICE 'col1: %,   col2 %', v_tmp.col1, v_tmp.col2;
     END LOOP;
-*/     
+*/
+
+    v_job_name := 'PG_JOBMON TEST WARNING JOB';
+    SELECT INTO v_job_id  jobmon.add_job(v_job_name);
+    SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 1');
+    PERFORM jobmon.update_step(v_step_id, 'OK', 'Successful Step 1');
+    SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 2');
+    PERFORM jobmon.update_step(v_step_id, 'WARNING', 'Failed Step 2');
+    v_step_status := jobmon.sql_step(v_job_id, 'Test step 3', 'DELETE FROM tmp_test WHERE col3 = 0');
+    IF v_step_status = 'FALSE' THEN
+        RAISE NOTICE 'sql step failed as excepted';
+    END IF;
+    PERFORM jobmon.fail_job(v_job_id, 2);
+    RAISE NOTICE 'Finished TEST WARNING JOB';
+
+     
     v_job_name := 'PG_JOBMON TEST BAD JOB';
     SELECT INTO v_job_id  jobmon.add_job(v_job_name);
     SELECT INTO v_step_id jobmon.add_step(v_job_id, 'Test step 1');

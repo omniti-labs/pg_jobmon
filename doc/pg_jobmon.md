@@ -27,8 +27,10 @@ LOGGING
 *close_job(p_job_id bigint) RETURNS void*  
     Used to successfully close the given job_id.   
     
-*fail_job(p_job_id bigint) RETURNS void*  
+*fail_job(p_job_id bigint, p_fail_level int DEFAULT 3) RETURNS void*  
     Used to unsuccessfully close the given job_id.  
+    Will default to failing with a level 3 alert in the log. Optional second argument allows you to fail a job with a different error level   
+    (Ex. close job w/ level 2 (WARNING) to avoid a critical page but still notify that something's wrong).
     
 *cancel_job(v_job_id bigint) RETURNS boolean*  
     Used to unsuccessfully terminate the given job_id from outside the running job.  
@@ -90,9 +92,8 @@ The job_log and job_detail table data WILL NOT be exported by a pg_dump. The ext
 
 MONITORING
 ----------
-
-*check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text)*  
-The above function takes as a parameter the interval of time that you'd like to go backwards to check for bad jobs. It's recommended not to look back any further than the longest interval that a single job runs to help the check run efficiently. For example, if the longest interval between any job is a week, then pass '1 week'.
+*check_job_status(OUT alert_code integer, OUT alert_text text)*  
+Function to run to see if any jobs have failed. No argument needs to be passed and it will automatically use the longest configured threshold interval from the job_check_config table as the period of time to check for bad jobs (see below). If nothing is configured in that table, it just checks for 3 consecutive job failures.
 
 The alert_code output indicates one of the following 3 statuses:  
 * Return code 1 means a successful job run  
@@ -112,7 +113,7 @@ The alert_text output is a more detailed message indicating what the actual jobs
 
 An example query and output is:
 
-    select t.error_text || c.alert_text as alert_status from jobmon.check_job_status('3 days') c 
+    select t.error_text || c.alert_text as alert_status from jobmon.check_job_status() c 
         join jobmon.job_status_text t on c.alert_code = t.error_code;
 
             alert_status          
@@ -131,7 +132,7 @@ Table of jobs that require special job monitoring other than 3 consecutive failu
  * sensitivity - This is the number of times the job can fail (status column in job_log is the text value of alert_code 3, CRITICAL by default) before alert_code 3 is returned by check_job_status(). Note that if you want this to return immediately on the first failure, set it to zero, not one.
 
 *job_check_log*  
-This table is used to record the job_id and job_name automatically whenever the status column of job_log contains the text value for alert level 3. You never have to insert or delete from this table. A trigger on job_log handles this. 
+This table is used to record the job_id, job_name & alert_code automatically whenever the status column of job_log contains the text value for alert levels 2 or 3. You should hopefully never have to insert or delete from this table manually. A trigger on job_log handles this. However, if a job fails and can never be run successfully again, you may have to manually clean the table to clear out the bad job from returning in check_job_status(). It's recommended NOT to truncate to clean it up as you could inadvertently delete a job that had just failed. It's best to delete the job number specifically or delete all jobs <= a specific job_id.
 
 *job_status_text*  
 Table containing the text values for the alert levels. Defaults are listed above. Change the alert_text column for each code to have custom statuses used for the status column in job_log. 

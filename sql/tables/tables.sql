@@ -50,7 +50,8 @@ ALTER TABLE job_detail ALTER COLUMN step_id SET DEFAULT nextval('job_detail_step
 
 CREATE TABLE job_check_log (
     job_id bigint NOT NULL,
-    job_name text NOT NULL
+    job_name text NOT NULL,
+    alert_code int DEFAULT 3 NOT NULL
 );
 SELECT pg_catalog.pg_extension_config_dump('job_check_log', '');
 
