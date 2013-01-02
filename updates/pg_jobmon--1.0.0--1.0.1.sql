@@ -1,30 +1,5 @@
-/*
- * Helper function to allow calling without an argument. See below for full function
- */
-CREATE FUNCTION check_job_status(OUT alert_code integer, OUT alert_text text)
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    v_alert_code        integer;
-    v_alert_text        text;
-    v_longest_period    interval;
-BEGIN
-
-SELECT greatest(max(error_threshold), max(warn_threshold)) INTO v_longest_period FROM @extschema@.job_check_config;
-IF v_longest_period IS NOT NULL THEN
-    SELECT * INTO v_alert_code, v_alert_text FROM @extschema@.check_job_status(v_longest_period);
-ELSE
-    -- Interval doesn't matter if nothing is in job_check_config. Just give default of 1 week. 
-    -- Still monitors for any 3 consecutive failures.
-    SELECT * INTO v_alert_code, v_alert_text FROM @extschema@.check_job_status('1 week');
-END IF;
-
-alert_code := v_alert_code;
-alert_text := v_alert_text;
-
-END
-$$;
-
+-- Made the check_job_status() error clearer for when a job is added to job_check_config but has never run. Would say a job was missing, but wouldn't say which one.
+-- check_job_status() will now report when sensitivity threshold is broken for jobs giving a level 2 (WARNING) status. Ex: A job with a sensitivity of zero will show up with a level 2 alert if it has shown up in job_log with just a single level 2 status.
 
 /*
  *  Check Job status
@@ -35,7 +10,7 @@ $$;
  * Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
  * Return code 3 is for use with a critical job failure 
  */
-CREATE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
+CREATE OR REPLACE FUNCTION check_job_status(p_history interval, OUT alert_code integer, OUT alert_text text) 
     LANGUAGE plpgsql
     AS $$
 DECLARE

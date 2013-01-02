@@ -1,3 +1,8 @@
+1.0.1
+-- Made the check_job_status() error clearer for when a job is added to job_check_config but has never run. Would say a job was missing, but wouldn't say which one.
+-- check_job_status() will now report when sensitivity threshold is broken for jobs giving a level 2 (WARNING) status. Ex: A job with a sensitivity of zero will show up with a level 2 alert if it has shown up in job_log with just a single level 2 status.
+
+
 1.0.0
 -- IMPORTANT NOTE: fail_job() & _autonomous_fail_job() functions have been dropped and recreated with new arguments. Please check function permissions before and after update.
 -- fail_job() can now take an optional second argument to set the final alert code level that the job should fail with in the job_log table. Allows jobs to fail with level 2 (WARNING) instead of only level 3 (CRITICAL). Default is level 3.
