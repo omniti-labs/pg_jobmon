@@ -2,7 +2,7 @@
  *  Show Jobs Like Name
  */
 CREATE FUNCTION show_job_like(p_name text, int default 10) RETURNS SETOF @extschema@.job_log
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
     v_job_list      @extschema@.job_log%ROWTYPE;

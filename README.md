@@ -1,8 +1,8 @@
 pg_jobmon
 =========
 
-pg_jobmon is an extension to add the capability to log the progress of running functions and provide a limited monitoring capability to those logged functions. The logging is done in a NON-TRANSACTIONAL method, so that if your function fails for any reason, all steps up to that point are kept in the log tables. The logging portions of the extension should be stable and ready for production use. The monitoring capability is still fairly new and may require adjusting but it should be usable.  
-More details about this extension can be found on my blog: http://keithf4.com/pg_jobmon
+pg_jobmon is an extension to add the capability to log the progress of running functions and provide a limited monitoring capability to those logged functions. The logging is done in a NON-TRANSACTIONAL method, so that if your function fails for any reason, all steps up to that point are kept in the log tables. 
+See the pg_jobmon.md file in docs for more details. Also see my blog for some examples and tips: http://keithf4.com/pg_jobmon
 
 INSTALLATION
 ------------
@@ -66,7 +66,7 @@ LICENSE AND COPYRIGHT
 
 pg_jobmon is released under the PostgreSQL License, a liberal Open Source license, similar to the BSD or MIT licenses.
 
-Copyright (c) 2012 OmniTI, Inc.
+Copyright (c) 2013 OmniTI, Inc.
 
 Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
 

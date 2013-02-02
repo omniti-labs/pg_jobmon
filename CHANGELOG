@@ -1,3 +1,8 @@
+1.0.2
+-- Fixed unhandled case in check_job_status where if a job had been run but never finished with an end_time or status set in job_log, it wouldn't raise an alert that is was missing
+-- Set functions that can be marked as STABLE
+
+
 1.0.1
 -- Made the check_job_status() error clearer for when a job is added to job_check_config but has never run. Would say a job was missing, but wouldn't say which one.
 -- check_job_status() will now report when sensitivity threshold is broken for jobs giving a level 2 (WARNING) status. Ex: A job with a sensitivity of zero will show up with a level 2 alert if it has shown up in job_log with just a single level 2 status.

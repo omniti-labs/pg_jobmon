@@ -1,8 +1,8 @@
 /*
  *  Show Currently Running Jobs
  */
-CREATE OR REPLACE FUNCTION show_running(int default 10) RETURNS SETOF @extschema@.job_log
-    LANGUAGE plpgsql
+CREATE FUNCTION show_running(int default 10) RETURNS SETOF @extschema@.job_log
+    LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
     v_job_list      @extschema@.job_log%ROWTYPE;

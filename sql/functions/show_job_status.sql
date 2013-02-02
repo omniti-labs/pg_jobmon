@@ -2,7 +2,7 @@
  *  Show Jobs By Status
  */
 CREATE FUNCTION show_job_status(p_status text, int default 10) RETURNS SETOF @extschema@.job_log
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
     v_job_list      @extschema@.job_log%ROWTYPE;
@@ -24,7 +24,7 @@ $$;
  *  Show Jobs By Exact Name and Status
  */
 CREATE FUNCTION show_job_status(p_name text, p_status text, int default 10) RETURNS SETOF @extschema@.job_log
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
     v_job_list      @extschema@.job_log%ROWTYPE;

@@ -2,7 +2,7 @@
  *  Show Job Details By Job ID
  */
 CREATE FUNCTION show_detail(p_id bigint) RETURNS SETOF @extschema@.job_detail
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
     v_job_detail     @extschema@.job_detail%ROWTYPE;
@@ -19,11 +19,12 @@ BEGIN
 END
 $$;
 
+
 /*
  *  Show Job Details By Exact Name
  */
 CREATE FUNCTION show_detail(p_name text, int default 1) RETURNS SETOF @extschema@.job_detail
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
     v_job_list      @extschema@.job_log%ROWTYPE;

@@ -1,8 +1,8 @@
 /*
  *  dblink Authentication mapping
  */
-CREATE OR REPLACE FUNCTION auth() RETURNS text
-    LANGUAGE plpgsql
+CREATE FUNCTION auth() RETURNS text
+    LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
  
