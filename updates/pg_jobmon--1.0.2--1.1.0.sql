@@ -1,3 +1,40 @@
+-- Critical Bug Fix: Version 1.0 accidentally removed the creation of the trigger on the job_log table so that failing jobs would never cause check_job_status() to report a failed job. Jobs that were configured to run within a certain time period were still monitored for. This only affects new installations of pg_jobmon since 1.0. If you've upgraded from a previous version, the trigger is still working properly.
+-- Redesigned check_job_status() to return more detailed, and more easily filtered data on the current status of running jobs. Please check how your monitoring software used this function to ensure it can handle the new output format properly. Each problem job is returned in its own row instead of all results being returned in a single row. If a single row is still desired, the highest alert level job in alphabetical order of job_name is always returned first, so a LIMIT 1 can be used as an easy solution. More advanced filtering is now possible, though. See the updated pg_jobmon.md doc for some examples.
+-- Wrote pgTAP tests and some other custom tests to better validate future changes
+
+-- Preserve dropped function privileges. Re-applied at the end of this update.
+CREATE TEMP TABLE mimeo_preserve_privs_temp (statement text);
+
+INSERT INTO mimeo_preserve_privs_temp 
+SELECT 'GRANT EXECUTE ON FUNCTION check_job_status(interval) TO '||array_to_string(array_agg(grantee::text), ',')||';' 
+FROM information_schema.routine_privileges
+WHERE routine_schema = '@extschema@'
+AND routine_name = 'check_job_status'; 
+
+INSERT INTO mimeo_preserve_privs_temp 
+SELECT 'GRANT EXECUTE ON FUNCTION check_job_status() TO '||array_to_string(array_agg(grantee::text), ',')||';' 
+FROM information_schema.routine_privileges
+WHERE routine_schema = '@extschema@'
+AND routine_name = 'check_job_status'; 
+
+CREATE FUNCTION replay_preserved_privs() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+v_row   record;
+BEGIN
+    FOR v_row IN SELECT statement FROM mimeo_preserve_privs_temp LOOP
+        EXECUTE v_row.statement;
+    END LOOP;
+END
+$$;
+
+DROP FUNCTION check_job_status(interval);
+DROP FUNCTION check_job_status();
+
+DROP TRIGGER IF EXISTS trg_job_monitor ON @extschema@.job_log;
+CREATE TRIGGER trg_job_monitor AFTER UPDATE ON @extschema@.job_log FOR EACH ROW EXECUTE PROCEDURE @extschema@.job_monitor();
+
 /*
  *  Check Job status
  *
@@ -197,3 +234,8 @@ END LOOP;
 END
 $$;
 
+
+-- Restore original privileges to objects that were dropped
+SELECT @extschema@.replay_preserved_privs();
+DROP FUNCTION @extschema@.replay_preserved_privs();
+DROP TABLE mimeo_preserve_privs_temp;

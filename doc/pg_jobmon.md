@@ -87,15 +87,16 @@ The job_log and job_detail table data WILL NOT be exported by a pg_dump. The ext
     or don't need to keep the data indefinitely  
 
 *dblink_mapping*
-    Configuration table for storing dblink connection info. Allows non-superusers to use this extension and changing the port of the cluster running pg_jobmon.  
+    Configuration table for storing dblink connection info. Allows non-superusers to use this extension and changing the port of the cluster running pg_jobmon. There should only ever be a single row in this table. See README.md file for usage during installation.
     
 
 MONITORING
 ----------
-*check_job_status(OUT alert_code integer, OUT alert_text text)*  
-Function to run to see if any jobs have failed. No argument needs to be passed and it will automatically use the longest configured threshold interval from the job_check_config table as the period of time to check for bad jobs (see below). If nothing is configured in that table, it just checks for 3 consecutive job failures.
+*check_job_status(OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record* 
 
-The alert_code output indicates one of the following 3 statuses:  
+Function to run to see if any jobs are having problems. No argument needs to be passed and it will automatically use the longest configured threshold interval from the job_check_config table as the period of time to check for bad jobs (see below). If nothing is configured in that table, it just checks for 3 consecutive job failures.
+
+The **alert_code** output indicates one of the following 3 statuses. Additionally configured, custom alert codes are not currently supported by this function:  
 * Return code 1 means a successful job run  
 * Return code 2 is for use with jobs that support a warning indicator. 
     Not critical, but someone should look into it
@@ -107,19 +108,34 @@ This monitoring function was originally created with nagios in mind, hence these
     2 = WARNING
     3 = CRITICAL
 
-If you'd like different status text values, just update the job_status_text table with the error_text values you'd like. DO NOT change the error_code values, though!
+If you'd like different status text values, just update the job_status_text table with the error_text values you'd like. DO NOT change the alert_code values, though, if you want to use the check_job_status() function!
 
-The alert_text output is a more detailed message indicating what the actual jobs that failed were.
+The **alert_status** output is a simple, small string indicator as to what is wrong. Example outputs are: FAILED_RUN, MISSING, BLOCKED, RUNNING. Note that a job will only report the MISSING, BLOCKED or RUNNING status if it has been added to the job_check_config table for additional monitoring outside the default 3 consecutive failures.
 
-An example query and output is:
+The **job_name** output is the job_name recorded in the job_log table.
 
-    select t.error_text || c.alert_text as alert_status from jobmon.check_job_status() c 
-        join jobmon.job_status_text t on c.alert_code = t.error_code;
+The **alert_text** output is a more detailed message about what the problem may be.
 
-            alert_status          
+You can filter the output however is easiest for your monitoring solution. A simple example for nagios (with good and bad output) to get the highest alert code status along with some additional info on one of the jobs currently having issues is:
+
+    select t.alert_text ||'('||COALESCE(c.job_name||': ', '')||c.alert_text||')' as alert_status 
+    from jobmon.check_job_status() c 
+    join jobmon.job_status_text t on c.alert_code = t.alert_code limit 1;
+
+             alert_status          
     -------------------------------
-    OK(All jobs run successfully)
+     OK(All jobs run successfully)
 
+
+                          alert_status                          
+    ----------------------------------------------------------------
+     CRITICAL(PG_JOBMON TEST BAD JOB: 1 consecutive job failure(s))
+
+Here's a more advanced query that will still give you the highest alert_code text at the beginning of the result, but also give all the job details for every job that currently has an issue, or provide the same All Clear message as above.
+
+    select t.alert_text||'('||l.job_list||')' as alert_status from (select max(alert_code) as alert_code, array_to_string(array_agg(COALESCE(job_name||'('||alert_status||'): ','')||alert_text), ';; ') as job_list from jobmon.check_job_status()) l join jobmon.job_status_text t on l.alert_code = t.alert_code;
+
+The output of check_job_status() hopefully gives you enough flexibility to allow you to monitor results as you need them.
 
 **Monitoring Tables:**
 

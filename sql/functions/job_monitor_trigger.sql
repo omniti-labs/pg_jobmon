@@ -25,3 +25,5 @@ BEGIN
     return null;
 END
 $$;
+
+CREATE TRIGGER trg_job_monitor AFTER UPDATE ON @extschema@.job_log FOR EACH ROW EXECUTE PROCEDURE @extschema@.job_monitor();

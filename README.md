@@ -2,7 +2,7 @@ pg_jobmon
 =========
 
 pg_jobmon is an extension to add the capability to log the progress of running functions and provide a limited monitoring capability to those logged functions. The logging is done in a NON-TRANSACTIONAL method, so that if your function fails for any reason, all steps up to that point are kept in the log tables. 
-See the pg_jobmon.md file in docs for more details. Also see my blog for some examples and tips: http://keithf4.com/pg_jobmon
+See the pg_jobmon.md file in docs for more details. Also see my blog for some examples and tips: http://www.keithf4.com/tag/pg_jobmon/ 
 
 INSTALLATION
 ------------
