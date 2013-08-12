@@ -71,6 +71,8 @@ All show functions also automatically uppercase the job name parameter to be con
 
 *show_running(int default 10) RETURNS SETOF job_log*  
     Returns data from job_log for any currently running jobs that use pg_jobmon.
+    Note that if there are any jobs with a NULL "status" with the same pid as anything currently running in pg_stat_activity,
+    this function may return false results. Fix unfinished jobs to prevent this from happening.
     
 
 **Log Tables:**  

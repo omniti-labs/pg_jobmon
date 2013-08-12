@@ -1,7 +1,9 @@
+-- Bugfix: Fixed show_running() to only match against non-idle queries when joining against pg_stat_activty. Still a chance of false result (see doc file), but much less likely now.
+
 /*
  *  Show Currently Running Jobs
  */
-CREATE FUNCTION show_running(int default 10) RETURNS SETOF @extschema@.job_log
+CREATE OR REPLACE FUNCTION show_running(int default 10) RETURNS SETOF @extschema@.job_log
     LANGUAGE plpgsql STABLE
     AS $$
 DECLARE
