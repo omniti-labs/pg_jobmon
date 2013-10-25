@@ -1,3 +1,7 @@
+1.1.3
+-- Fix "make install" to work in PostgreSQL 9.3.x without throwing an error.
+
+
 1.1.2
 -- Bugfix: Fixed show_running() to only match against non-idle queries when joining against pg_stat_activty. Still a chance of false result (see doc file), but much less likely now.
 

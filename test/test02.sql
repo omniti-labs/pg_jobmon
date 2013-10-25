@@ -1,7 +1,7 @@
 \set ON_ERROR_ROLLBACK 1
 \set ON_ERROR_STOP true
 
-SELECT set_config('search_path', 'jobmon, dblink, tap', false);
+SELECT set_config('search_path', 'jobmon, dblink, public', false);
 
 SELECT plan(6);
 

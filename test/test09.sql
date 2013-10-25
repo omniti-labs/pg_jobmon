@@ -1,6 +1,6 @@
 -- Cleanup after all pg_jobmon testing
 
-SELECT set_config('search_path', 'jobmon, dblink, tap', false);
+SELECT set_config('search_path', 'jobmon, dblink, public', false);
 
 SELECT plan(1);
 

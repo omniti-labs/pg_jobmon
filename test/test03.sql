@@ -1,16 +1,16 @@
 \set ON_ERROR_ROLLBACK 1
 \set ON_ERROR_STOP true
 
-SELECT set_config('search_path', 'jobmon, dblink, tap', false);
+SELECT set_config('search_path', 'jobmon, dblink, public', false);
 
 SELECT plan(7);
 
 SELECT results_eq('SELECT * FROM check_job_status()', 
-    $$VALUES(3,'FAILED_RUN','PG_JOBMON TEST BAD JOB','1 consecutive job failure(s)')
+    $$VALUES(3,'FAILED_RUN','PG_JOBMON TEST BAD JOB','1 CRITICAL run(s)')
         , (3,'MISSING','PG_JOBMON TEST JOB NEVER FINISHED','Has not completed a run since highest configured monitoring time period')
         , (3,'MISSING','PG_JOBMON TEST JOB NEVER RUN','Has not completed a run since highest configured monitoring time period')
-        , (3,'FAILED_RUN','PG_JOBMON TEST NON-CONFIG BAD JOB','3 consecutive job failures')
-        , (2,'FAILED_RUN','PG_JOBMON TEST WARNING JOB','1 consecutive job failure(s)')$$
+        , (3,'FAILED_RUN','PG_JOBMON TEST NON-CONFIG BAD JOB','3 consecutive CRITICAL runs')
+        , (2,'FAILED_RUN','PG_JOBMON TEST WARNING JOB','1 WARNING run(s)')$$
     , 'Checking for initial job failures in check_job_status()');
 
 SELECT pass('Sleeping for 40 seconds to test for warning threshold...');

@@ -4,7 +4,7 @@
 
 -- TODO Add test at the end running check_job_status to show it not finding any of the configured jobs
 
-SELECT set_config('search_path', 'jobmon, dblink, tap', false);
+SELECT set_config('search_path', 'jobmon, dblink, public', false);
 
 SELECT plan(2);
 

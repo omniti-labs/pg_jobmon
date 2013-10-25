@@ -23,6 +23,6 @@ Not all of pg_jobmon's functions can be tested with pgTAP due to requiring multi
 
 test_cancel_job.sql
 test_running_job.sql
-test_blocked_job.sql (depends on test_blocked_job_blocker.sql)
+test_blocked_job.sql (depends on test_blocked_job_blocker.sql being run first)
 
 The tests are not required to run pg_jobmon, so if you don't feel safe doing this you don't need to run the tests. But if you are running into problems and report any issues without a clear explanation of what is wrong, I will ask that you run the test suite so you can try and narrow down where the problem may be. You are free to look through to tests to see exactly what they're doing. The final numbered test script can be run on its own and should clean up everything and leave your database as it was before.
