@@ -1,3 +1,10 @@
+1.2.0
+-- New configuration column "escalate" to provide alert escalation capability. Allows for when a job fails at a certain alert level a given number of times, the alert level in the monitoring is raised to the next level up. (Experimental. Please provide feedback)
+-- Adjust monitor trigger on job_log table to be able to handle custom alert codes better.
+-- Included alert_text value in description returned by check_job_status to make it clearer how many of each alert status occurred. 
+-- Fixed pgTAP tests to pass properly and account for new return values. Added tests for escalation.
+
+
 1.1.3
 -- Fix "make install" to work in PostgreSQL 9.3.x without throwing an error.
 

@@ -69,8 +69,8 @@ CREATE TABLE job_check_config (
     warn_threshold interval NOT NULL,
     error_threshold interval NOT NULL,
     active boolean DEFAULT false NOT NULL,
---    escalate text DEFAULT 'email'::text NOT NULL,
     sensitivity smallint DEFAULT 0 NOT NULL,
+    escalate int,
     CONSTRAINT job_check_config_job_name_pkey PRIMARY KEY (job_name)
 );
 SELECT pg_catalog.pg_extension_config_dump('job_check_config', '');

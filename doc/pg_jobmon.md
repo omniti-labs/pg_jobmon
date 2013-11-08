@@ -110,7 +110,7 @@ This monitoring function was originally created with nagios in mind, hence these
     2 = WARNING
     3 = CRITICAL
 
-If you'd like different status text values, just update the job_status_text table with the error_text values you'd like. DO NOT change the alert_code values, though, if you want to use the check_job_status() function!
+If you'd like different status text values, just update the job_status_text table with the error_text values you'd like. DO NOT change the alert_code values, though, if you want to use the check_job_status() function! And while you're free to add additional code values for different statuses you may need, the core monitoring code always assumes that the alert_code for a job completing successfully is 1. If you change that, the extension's monitoring capabilities may not act in a 100% predictable manner. 
 
 The **alert_status** output is a simple, small string indicator as to what is wrong. Example outputs are: FAILED_RUN, MISSING, BLOCKED, RUNNING. Note that a job will only report the MISSING, BLOCKED or RUNNING status if it has been added to the job_check_config table for additional monitoring outside the default 3 consecutive failures.
 
@@ -148,9 +148,18 @@ Table of jobs that require special job monitoring other than 3 consecutive failu
  * error_threshold - This is the interval of time that can pass without the job running before alert_code 3 is returned by check_job_status()
  * active - Set this to TRUE if you want check_job_status() to actively monitor this job. Set to FALSE to disable checking without removing the data from the config table
  * sensitivity - This is the number of times the job can fail (status column in job_log is the text value of alert_code 3, CRITICAL by default) before alert_code 3 is returned by check_job_status(). Note that if you want this to return immediately on the first failure, set it to zero, not one.
+ * escalate - How many times a job can fail at each alert level before it is escaleted to the next highest available alert level. See ALERT ESCALATION section below for more.
 
 *job_check_log*  
-This table is used to record the job_id, job_name & alert_code automatically whenever the status column of job_log contains the text value for alert levels 2 or 3. You should hopefully never have to insert or delete from this table manually. A trigger on job_log handles this. However, if a job fails and can never be run successfully again, you may have to manually clean the table to clear out the bad job from returning in check_job_status(). It's recommended NOT to truncate to clean it up as you could inadvertently delete a job that had just failed. It's best to delete the job number specifically or delete all jobs <= a specific job_id.
+This table is used to record the job_id, job_name & alert_code automatically whenever the status column of job_log contains the text value for alert levels other than 1. You should hopefully never have to insert or delete from this table manually. A trigger on job_log handles this. However, if a job fails and can never be run successfully again, you may have to manually clean the table to clear out the bad job from returning in check_job_status(). It's recommended NOT to truncate to clean it up as you could inadvertently delete a job that had just failed. It's best to delete the job number specifically or delete all jobs <= a specific job_id. If you're not going to use the check_job_status() function, this is the table you want to watch for anything causing problems and raising alerts other than 1.
 
 *job_status_text*  
-Table containing the text values for the alert levels. Defaults are listed above. Change the alert_text column for each code to have custom statuses used for the status column in job_log. 
+Table containing the text values for the alert levels. Defaults are listed above. Change the alert_text column for each code to have custom statuses used for the status column in job_log. The default alert_codes (1,2,3) are used by check_job_status() and if changed, that monitoring function can no longer be used. Even if custom alert codes are used, alert_code 1 should always be used for a successfully completed job. All other alerts can be customized as needed.  
+
+
+ALERT ESCALATION
+----------------
+
+PG Jobmon supports alert escalation where if a job fails a given number of times at a certain alert level, it will automatically be escalated to the next highest alert_code found in the job_status_text table. Set the **escalate** column found in the **job_check_config** table for the job you want escalation on to the number of times a job should cause an alert on each level before being raised to the next. For example, if you want the alert level raised to 3 (CRITICAL by default) after issuing the level 2 (WARNING by default) alert three times, set the escalate value to 3. If you have added any custom alert codes higher than this, it will do the same escalation at each level.
+
+Escalation is not turned on by default and is still slightly experimental at this time. Looking for feedback on this, good or bad. Even just an "It works!" would be appreciated.

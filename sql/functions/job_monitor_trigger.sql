@@ -1,29 +1,26 @@
 /*
  *  Job Monitor Trigger
  */
-CREATE FUNCTION job_monitor() RETURNS trigger
+CREATE OR REPLACE FUNCTION job_monitor() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    v_bad   text;
-    v_ok    text;
-    v_warn  text;
+    v_alert_code    int;
 BEGIN
-    SELECT alert_text INTO v_ok FROM @extschema@.job_status_text WHERE alert_code = 1;
-    SELECT alert_text INTO v_warn FROM @extschema@.job_status_text WHERE alert_code = 2;
-    SELECT alert_text INTO v_bad FROM @extschema@.job_status_text WHERE alert_code = 3;
-    IF NEW.status = v_ok THEN
-        DELETE FROM @extschema@.job_check_log WHERE job_name = NEW.job_name;
-    ELSIF NEW.status = v_warn THEN
-        INSERT INTO @extschema@.job_check_log (job_id, job_name, alert_code) VALUES (NEW.job_id, NEW.job_name, 2);        
-    ELSIF NEW.status = v_bad THEN
-        INSERT INTO @extschema@.job_check_log (job_id, job_name, alert_code) VALUES (NEW.job_id, NEW.job_name, 3);
-    ELSE
-        -- Do nothing
+
+    SELECT alert_code INTO v_alert_code FROM @extschema@.job_status_text WHERE alert_text = NEW.status;
+    IF v_alert_code IS NOT NULL THEN
+        IF v_alert_code = 1 THEN
+            DELETE FROM @extschema@.job_check_log WHERE job_name = NEW.job_name;
+        ELSE
+            INSERT INTO @extschema@.job_check_log (job_id, job_name, alert_code) VALUES (NEW.job_id, NEW.job_name, v_alert_code);
+        END IF;
     END IF;
 
-    return null;
+    RETURN NULL;
 END
 $$;
 
-CREATE TRIGGER trg_job_monitor AFTER UPDATE ON @extschema@.job_log FOR EACH ROW EXECUTE PROCEDURE @extschema@.job_monitor();
+CREATE TRIGGER trg_job_monitor 
+AFTER UPDATE ON @extschema@.job_log 
+FOR EACH ROW EXECUTE PROCEDURE @extschema@.job_monitor();

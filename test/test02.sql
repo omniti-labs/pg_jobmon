@@ -7,15 +7,23 @@ SELECT plan(6);
 
 SELECT jobmon_test_jobs_normal();
 
-SELECT results_eq('SELECT job_name, status FROM job_log ORDER BY job_id' 
-    , $$VALUES('PG_JOBMON TEST JOB NEVER FINISHED', NULL)
+SELECT results_eq('SELECT job_name, status FROM job_log WHERE job_name IN (
+    ''PG_JOBMON TEST BAD JOB'',
+    ''PG_JOBMON TEST GOOD JOB'',
+    ''PG_JOBMON TEST JOB NEVER FINISHED'',
+    ''PG_JOBMON TEST NON-CONFIG BAD JOB'',
+    ''PG_JOBMON TEST NON-CONFIG BAD JOB'',
+    ''PG_JOBMON TEST NON-CONFIG BAD JOB'',
+    ''PG_JOBMON TEST SQL JOB'',
+    ''PG_JOBMON TEST WARNING JOB'') ORDER BY job_name' 
+    , $$VALUES('PG_JOBMON TEST BAD JOB', 'CRITICAL')
         , ('PG_JOBMON TEST GOOD JOB', 'OK')
-        , ('PG_JOBMON TEST WARNING JOB', 'WARNING')
-        , ('PG_JOBMON TEST BAD JOB', 'CRITICAL')
+        , ('PG_JOBMON TEST JOB NEVER FINISHED', NULL)
+        , ('PG_JOBMON TEST NON-CONFIG BAD JOB', 'CRITICAL')
+        , ('PG_JOBMON TEST NON-CONFIG BAD JOB', 'CRITICAL')
+        , ('PG_JOBMON TEST NON-CONFIG BAD JOB', 'CRITICAL')
         , ('PG_JOBMON TEST SQL JOB', 'OK')
-        , ('PG_JOBMON TEST NON-CONFIG BAD JOB', 'CRITICAL')
-        , ('PG_JOBMON TEST NON-CONFIG BAD JOB', 'CRITICAL')
-        , ('PG_JOBMON TEST NON-CONFIG BAD JOB', 'CRITICAL')$$
+        , ('PG_JOBMON TEST WARNING JOB', 'WARNING')$$
     , 'Checking job_log values');
 
 SELECT results_eq('SELECT action, status, message FROM jobmon.job_detail WHERE job_id = (SELECT job_id FROM jobmon.job_log WHERE job_name = ''PG_JOBMON TEST GOOD JOB'') ORDER BY step_id ASC'
