@@ -1,3 +1,5 @@
+[![PGXN version](https://badge.fury.io/pg/pg_jobmon.svg)](https://badge.fury.io/pg/pg_jobmon)
+
 pg_jobmon
 =========
 
@@ -66,7 +68,7 @@ LICENSE AND COPYRIGHT
 
 pg_jobmon is released under the PostgreSQL License, a liberal Open Source license, similar to the BSD or MIT licenses.
 
-Copyright (c) 2013 OmniTI, Inc.
+Copyright (c) 2015 OmniTI, Inc.
 
 Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
 

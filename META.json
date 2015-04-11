@@ -46,6 +46,7 @@
         "job logging",
         "job monitoring",
         "log",
-        "logging"
+        "logging",
+        "monitoring"
     ]
 }
