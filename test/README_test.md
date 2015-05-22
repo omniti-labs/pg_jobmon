@@ -13,7 +13,7 @@ Since pg_jobmon uses dblink, testing cannot be done as recommended in the pgTAP 
 
 If you've installed any of the above extensions in a different schema and would like to run the test suite, simply change the configuration option found at the top of each testing file to match your setup.
 
-    SELECT set_config('search_path','mimeo, dblink, tap',false);
+    SELECT set_config('search_path','jobmon, dblink, tap',false);
 
 Once that's done, it's best to use the **pg_prove** script that pgTAP comes with to run all the tests. I like using the -f -o -v options to get more useful feedback. Note that only the numbered tests use pgTAP. So to run them all at once, you can use this command and avoid running the other tests
 
