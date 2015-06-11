@@ -56,12 +56,32 @@ CREATE TABLE job_check_log (
 SELECT pg_catalog.pg_extension_config_dump('job_check_log', '');
 
 
-CREATE TABLE dblink_mapping (
+CREATE TABLE dblink_mapping_jobmon (
     username text,
     port text,
     pwd text
 );
-SELECT pg_catalog.pg_extension_config_dump('dblink_mapping', '');
+SELECT pg_catalog.pg_extension_config_dump('dblink_mapping_jobmon', '');
+
+CREATE FUNCTION dblink_limit_trig() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+v_count     smallint;
+BEGIN
+
+    EXECUTE 'SELECT count(*) FROM '|| TG_TABLE_SCHEMA ||'.'|| TG_TABLE_NAME INTO v_count;
+    IF v_count > 1 THEN
+        RAISE EXCEPTION 'Only a single row may exist in this table';
+    END IF;
+
+    RETURN NULL;
+END
+$$;
+
+CREATE TRIGGER dblink_limit_trig AFTER INSERT ON @extschema@.dblink_mapping_jobmon
+FOR EACH ROW
+EXECUTE PROCEDURE @extschema@.dblink_limit_trig();
 
 
 CREATE TABLE job_check_config (

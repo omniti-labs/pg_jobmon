@@ -1,3 +1,74 @@
+-- Enforce there only being one row in the dblink mapping table. WARNING: If you have more than a single entry in this table, all functions that use pg_jobmon will break the next time they run after you install this update. They could have likely broken at any other time, it's just that the single row being returned when jobmon authenticated itself was the right one. You were lucky! Ensure only a single, correct entry before updating to this version.
+-- Renamed dblink_mapping table to dblink_mapping_jobmon. This was causing issues with other extensions with a similiarly named table (mimeo) when they're installed in the same schema.
+-- Avoid some false positives in check_job_status() that were reporting currently running or incomplete jobs as being blocked by another transaction
+
+ALTER TABLE @extschema@.dblink_mapping RENAME TO dblink_mapping_jobmon;
+
+CREATE FUNCTION dblink_limit_trig() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+v_count     smallint;
+BEGIN
+
+    EXECUTE 'SELECT count(*) FROM '|| TG_TABLE_SCHEMA ||'.'|| TG_TABLE_NAME INTO v_count;
+    IF v_count > 1 THEN
+        RAISE EXCEPTION 'Only a single row may exist in this table';
+    END IF;
+
+    RETURN NULL;
+END
+$$;
+
+CREATE TRIGGER dblink_limit_trig AFTER INSERT ON @extschema@.dblink_mapping_jobmon
+FOR EACH ROW
+EXECUTE PROCEDURE @extschema@.dblink_limit_trig();
+
+
+/*
+ *  dblink Authentication mapping
+ */
+CREATE OR REPLACE FUNCTION auth() RETURNS text
+    LANGUAGE plpgsql STABLE
+    AS $$
+DECLARE
+ 
+    v_auth          text = '';
+    v_port          text;
+    v_password      text; 
+    v_username      text;
+ 
+BEGIN
+    -- Ensure only one row is returned. No rows is fine, but this was the only way to force one.
+    -- Trigger on table should enforce it as well, but extra check doesn't hurt.
+    BEGIN
+        SELECT username, port, pwd INTO STRICT v_username, v_port, v_password FROM @extschema@.dblink_mapping_jobmon;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            -- Do nothing
+        WHEN TOO_MANY_ROWS THEN
+            RAISE EXCEPTION 'dblink_mapping_jobmon table can only have a single entry';
+    END;
+            
+
+    IF v_port IS NULL THEN
+        v_auth = 'dbname=' || current_database();
+    ELSE
+        v_auth := 'port='||v_port||' dbname=' || current_database();
+    END IF;
+
+    IF v_username IS NOT NULL THEN
+        v_auth := v_auth || ' user='||v_username;
+    END IF;
+
+    IF v_password IS NOT NULL THEN
+        v_auth := v_auth || ' password='||v_password;
+    END IF;
+    RETURN v_auth;    
+END
+$$;
+
+
 /*
  *  Check Job status
  *
@@ -7,7 +78,7 @@
  * Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
  * Return code 3 is for use with a critical job failure 
  */
-CREATE FUNCTION check_job_status(p_history interval, OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
+CREATE OR REPLACE FUNCTION check_job_status(p_history interval, OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
 LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -185,30 +256,3 @@ DROP TABLE IF EXISTS jobmon_check_job_status_temp;
 END
 $$;
 
-
-/*
- * Helper function to allow calling without an argument.
- */
-CREATE FUNCTION check_job_status(OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
-    LANGUAGE plpgsql STABLE
-    AS $$
-DECLARE
-    v_longest_period    interval;
-    v_row               record;
-BEGIN
-
--- Interval doesn't matter if nothing is in job_check_config. Just give default of 1 week. 
--- Still monitors for any 3 consecutive failures.
-SELECT COALESCE(greatest(max(error_threshold), max(warn_threshold)), '1 week') INTO v_longest_period FROM @extschema@.job_check_config;
-
-FOR v_row IN SELECT q.alert_code, q.alert_status, q.job_name, q.alert_text FROM @extschema@.check_job_status(v_longest_period) q
-LOOP
-        alert_code := v_row.alert_code;
-        alert_status := v_row.alert_status;
-        job_name := v_row.job_name;
-        alert_text := v_row.alert_text;
-        RETURN NEXT;
-END LOOP;
-
-END
-$$;

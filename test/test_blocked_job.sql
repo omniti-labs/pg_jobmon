@@ -1,6 +1,6 @@
 -- To check for a blocked job, a second session is required, so pgTAP cannot be used.
 -- You must first run test_blocked_job_blocker.sql in another session before you can run this test so that a separate transaction takes the lock.
--- To cleanup after this script if it doesn't finish properly, run test09
+-- To cleanup after this script if it doesn't finish properly, run test99
 
 SELECT set_config('search_path', 'jobmon, dblink, tap', false);
 

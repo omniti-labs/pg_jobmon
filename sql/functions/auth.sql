@@ -12,7 +12,17 @@ DECLARE
     v_username      text;
  
 BEGIN
-    SELECT username, port, pwd INTO v_username, v_port, v_password FROM @extschema@.dblink_mapping;
+    -- Ensure only one row is returned. No rows is fine, but this was the only way to force one.
+    -- Trigger on table should enforce it as well, but extra check doesn't hurt.
+    BEGIN
+        SELECT username, port, pwd INTO STRICT v_username, v_port, v_password FROM @extschema@.dblink_mapping_jobmon;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            -- Do nothing
+        WHEN TOO_MANY_ROWS THEN
+            RAISE EXCEPTION 'dblink_mapping_jobmon table can only have a single entry';
+    END;
+            
 
     IF v_port IS NULL THEN
         v_auth = 'dbname=' || current_database();
@@ -30,3 +40,5 @@ BEGIN
     RETURN v_auth;    
 END
 $$;
+
+

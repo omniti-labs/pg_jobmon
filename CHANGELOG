@@ -1,3 +1,9 @@
+1.3.0
+-- Enforce there only being one row in the dblink mapping table. WARNING: If you have more than a single entry in this table, all functions that use pg_jobmon will break the next time they run after you install this update. They could have likely broken at any other time, it's just that the single row being returned when jobmon authenticated itself was the right one. You were lucky! Ensure only a single, correct entry before updating to this version.
+-- Renamed dblink_mapping table to dblink_mapping_jobmon. This was causing issues with other extensions with a similiarly named table (mimeo) when they're installed in the same schema.
+-- Avoid some false positives in check_job_status() that were reporting currently running or incomplete jobs as being blocked by another transaction
+
+
 1.2.0
 -- New configuration column "escalate" to provide alert escalation capability. Allows for when a job fails at a certain alert level a given number of times, the alert level in the monitoring is raised to the next level up. (Experimental. Please provide feedback)
 -- Adjust monitor trigger on job_log table to be able to handle custom alert codes better.

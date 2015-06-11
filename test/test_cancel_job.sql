@@ -8,7 +8,7 @@ Search the job_detail table for more details of the above job_id. The last log e
     was manually cancelled with job_cancel().
 */
 
--- To cleanup after this script, run test09
+-- To cleanup after this script, run test99
 
 SELECT set_config('search_path', 'jobmon, dblink, tap', false);
 

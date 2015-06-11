@@ -1,5 +1,5 @@
 -- To check for a running job, a second session is required, so pgTAP cannot be used.
--- To cleanup after this script if it doesn't finish properly, run test09
+-- To cleanup after this script if it doesn't finish properly, run test99
 
 SELECT set_config('search_path', 'jobmon, dblink, tap', false);
 

@@ -1,7 +1,7 @@
 {
     "name": "pg_jobmon",
     "abstract": "Job logging and monitoring extension",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "maintainer": [ 
         "Keith Fiske <keith@omniti.com>"
     ],
@@ -18,9 +18,9 @@
     },
     "provides": {
         "pg_jobmon": {
-            "file": "sql/pg_jobmon--1.2.0.sql",
+            "file": "sql/pg_jobmon--1.3.0.sql",
             "docfile": "doc/pg_jobmon.md",
-            "version": "1.2.0",
+            "version": "1.3.0",
             "abstract": "Job logging and monitoring extension"
         }
     },
@@ -43,6 +43,8 @@
         "functions",
         "function logging",
         "function monitoring",
+        "job",
+        "jobs",
         "job logging",
         "job monitoring",
         "log",
