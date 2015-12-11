@@ -27,7 +27,7 @@ BEGIN
 END
 $$;
 
-INSERT INTO job_check_config (job_name, warn_threshold, error_threshold, active, sensitivity) VALUES ('PG_JOBMON TEST BLOCKED JOB', '10 seconds', '1 min', true, 0);
+INSERT INTO job_check_config (job_name, warn_threshold, error_threshold, active, sensitivity) VALUES ('PG_JOBMON TEST BLOCKED JOB', '15 seconds', '2 min', true, 0);
 
 SELECT jobmon_test_jobs_blocked();
 

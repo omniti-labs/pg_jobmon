@@ -1,3 +1,5 @@
+-- Fixed check_job_status() to obey "active" column setting properly in all cases. Was still returning failed jobs even though active had been set to false in some cases.
+
 /*
  *  Check Job status
  *
@@ -7,7 +9,7 @@
  * Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
  * Return code 3 is for use with a critical job failure 
  */
-CREATE FUNCTION check_job_status(p_history interval, OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
+CREATE OR REPLACE FUNCTION check_job_status(p_history interval, OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
 LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -190,7 +192,7 @@ $$;
 /*
  * Helper function to allow calling without an argument.
  */
-CREATE FUNCTION check_job_status(OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
+CREATE OR REPLACE FUNCTION check_job_status(OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
     LANGUAGE plpgsql STABLE
     AS $$
 DECLARE

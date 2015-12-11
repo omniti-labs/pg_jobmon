@@ -1,3 +1,7 @@
+1.3.1
+-- Fixed check_job_status() to obey "active" column setting properly in all cases. Was still returning failed jobs even though active had been set to false in some cases.
+
+
 1.3.0
 -- Enforce there only being one row in the dblink mapping table. WARNING: If you have more than a single entry in this table, all functions that use pg_jobmon will break the next time they run after you install this update. They could have likely broken at any other time, it's just that the single row being returned when jobmon authenticated itself was the right one. You were lucky! Ensure only a single, correct entry before updating to this version.
 -- Renamed dblink_mapping table to dblink_mapping_jobmon. This was causing issues with other extensions with a similiarly named table (mimeo) when they're installed in the same schema.
