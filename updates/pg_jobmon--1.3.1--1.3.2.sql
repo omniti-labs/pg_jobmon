@@ -1,3 +1,5 @@
+-- Fixed bug in check_job_status() that would cause it to erroneously return an error about the input argument not being greater than or equal to the longest configured threshold. This would occur if you had an entry in the job_check_config table with (active = false) and a longer threshold than any actually active jobs.
+
 /*
  *  Check Job status
  *
@@ -7,7 +9,7 @@
  * Return code 2 is for use with jobs that support a warning indicator. Not critical, but someone should look into it
  * Return code 3 is for use with a critical job failure 
  */
-CREATE FUNCTION check_job_status(p_history interval, OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
+CREATE OR REPLACE FUNCTION check_job_status(p_history interval, OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
 LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -188,30 +190,3 @@ DROP TABLE IF EXISTS jobmon_check_job_status_temp;
 END
 $$;
 
-
-/*
- * Helper function to allow calling without an argument.
- */
-CREATE FUNCTION check_job_status(OUT alert_code int, OUT alert_status text, OUT job_name text, OUT alert_text text) RETURNS SETOF record 
-    LANGUAGE plpgsql STABLE
-    AS $$
-DECLARE
-    v_longest_period    interval;
-    v_row               record;
-BEGIN
-
--- Interval doesn't matter if nothing is in job_check_config. Just give default of 1 week. 
--- Still monitors for any 3 consecutive failures.
-SELECT COALESCE(greatest(max(error_threshold), max(warn_threshold)), '1 week') INTO v_longest_period FROM @extschema@.job_check_config WHERE active;
-
-FOR v_row IN SELECT q.alert_code, q.alert_status, q.job_name, q.alert_text FROM @extschema@.check_job_status(v_longest_period) q
-LOOP
-        alert_code := v_row.alert_code;
-        alert_status := v_row.alert_status;
-        job_name := v_row.job_name;
-        alert_text := v_row.alert_text;
-        RETURN NEXT;
-END LOOP;
-
-END
-$$;

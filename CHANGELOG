@@ -1,3 +1,7 @@
+1.3.2
+-- Fixed bug in check_job_status() that would cause it to erroneously return an error about the input argument not being greater than or equal to the longest configured threshold. This would occur if you had an entry in the job_check_config table with (active = false) and a longer threshold than any actually active jobs.
+
+
 1.3.1
 -- Fixed check_job_status() to obey "active" column setting properly in all cases. Was still returning failed jobs even though active had been set to false in some cases.
 
