@@ -101,7 +101,7 @@ CREATE TABLE job_status_text (
     alert_text  text NOT NULL,
     CONSTRAINT job_status_text_alert_code_pkey PRIMARY KEY (alert_code)
 );
-SELECT pg_catalog.pg_extension_config_dump('job_status_text', '');
+SELECT pg_catalog.pg_extension_config_dump('job_status_text', 'WHERE alert_code NOT IN (1,2,3)');
 INSERT INTO job_status_text (alert_code, alert_text) VALUES (1, 'OK');
 INSERT INTO job_status_text (alert_code, alert_text) VALUES (2, 'WARNING');
 INSERT INTO job_status_text (alert_code, alert_text) VALUES (3, 'CRITICAL');
