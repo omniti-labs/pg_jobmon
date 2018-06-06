@@ -115,8 +115,11 @@ RUN echo "standby_mode = 'on' " >$PGDATADIR/recovery.done && \
 	echo "trigger_file = '$PGDATADIR/finish.recovery'" >>$PGDATADIR/recovery.done && \
 	echo "recovery_target_timeline = 'latest'" >>$PGDATADIR/recovery.done
 
-run echo "pg_prove -f -v /home/postgres/pg_jobmon/test/test0* -d monkey" >/home/$PGUSER/test_jobmon.sh && chmod +x /home/$PGUSER/test_jobmon.sh
+RUN echo "#!/bin/bash" > /home/$PGUSER/test_jobmon.sh && \
+	echo "/home/$PGUSER/pgsql/bin/pg_ctl -D $PGDATADIR start" >>/home/$PGUSER/test_jobmon.sh && \
+	echo "sleep 3" >>/home/$PGUSER/test_jobmon.sh && \
+	echo "/usr/local/bin/pg_prove -b /home/$PGUSER/pgsql/bin/psql -f -v /home/postgres/pg_jobmon/test/test0* -d monkey" >>/home/$PGUSER/test_jobmon.sh && chmod +x /home/$PGUSER/test_jobmon.sh
 
 #USER root
-ENTRYPOINT sudo service ssh restart && $PGBINDIR/bin/pg_ctl -D $PGDATADIR start && sleep 1 && clear && bash
+CMD sudo service ssh restart && $PGBINDIR/bin/pg_ctl -D $PGDATADIR start && sleep 1  && tail -f /home/$PGUSER/pgdata/log/*.log
 #Tadah !

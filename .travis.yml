@@ -8,4 +8,4 @@ before_install:
   - docker ps -a
 
 script:
-  - docker run -e TERM=xterm jobmon_tester -c "/home/postgres/test_jobmon.sh"
+  - docker run -e TERM=xterm -t jobmon_tester /home/postgres/test_jobmon.sh
