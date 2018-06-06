@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/omniti-labs/pg_jobmon.svg?branch=master)](https://travis-ci.com/omniti-labs/pg_jobmon)
 [![PGXN version](https://badge.fury.io/pg/pg_jobmon.svg)](https://badge.fury.io/pg/pg_jobmon)
 
 pg_jobmon
