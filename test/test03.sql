@@ -69,8 +69,8 @@ SELECT results_eq('SELECT action, status, message FROM jobmon.job_detail WHERE j
     , $$VALUES('Test step 1', 'OK', 'Testing job recovery')$$
     , 'Checking NON-CONFIG BAD JOB recovery details');
 
-SELECT throws_ok('INSERT INTO dblink_mapping_jobmon VALUES (''pg_jobmon_duptest'', ''5666'', ''duptest'')', 'Only a single row may exist in this table', 'This test will fail if there are no entries in the dblink_mapping table. That''s fine.');
+SELECT throws_ok('INSERT INTO dblink_mapping_jobmon VALUES (''127.0.0.1'',''pg_jobmon_duptest'', ''5666'', ''duptest'')', 'Only a single row may exist in this table', 'This test will fail if there are no entries in the dblink_mapping table. That''s fine.');
 
-DELETE FROM dblink_mapping_jobmon WHERE username = 'pg_jobmon_duptest' AND port = '5666' AND pwd = 'duptest';
+DELETE FROM dblink_mapping_jobmon WHERE host='127.0.0.1' AND username = 'pg_jobmon_duptest' AND port = '5666' AND pwd = 'duptest';
 
 SELECT * FROM finish();
