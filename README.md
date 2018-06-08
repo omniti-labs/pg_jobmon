@@ -43,7 +43,7 @@ If you're running PostgreSQL on a port other than the default (5432), you can al
 
     INSERT INTO jobmon.dblink_mapping_jobmon (port) VALUES ('5999');
 
-Be aware that the dblink_mapping_jobmon table can only have a single row, so if you're using a custom role and different port, all can just be entered in the same row. None of the columns is required, so just use the ones you need for your setup.
+Be aware that the dblink_mapping_jobmon table can only have a single row, so if you're using a custom host, role or different port, all can just be entered in the same row. None of the columns is required, so just use the ones you need for your setup.
 
     INSERT INTO jobmon.dblink_mapping_jobmon (username, pwd, port) VALUES ('rolename', 'rolepassword', '5999');
 
