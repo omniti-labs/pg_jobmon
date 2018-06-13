@@ -89,7 +89,7 @@ The job_log and job_detail table data WILL NOT be exported by a pg_dump. The ext
     or don't need to keep the data indefinitely  
 
 *dblink_mapping_jobmon*
-    Configuration table for storing dblink connection info. Allows non-superusers to use this extension and changing the port of the cluster running pg_jobmon. This table enforces there only being a single row in it. See README.md file for usage during installation.
+    Configuration table for storing dblink connection info. Allows non-superusers to use this extension and changing the port of the cluster running pg_jobmon. This table enforces there only being a single row in it. See [README.md](../README.md) file for usage during installation.
     
 
 MONITORING
@@ -163,3 +163,9 @@ ALERT ESCALATION
 PG Jobmon supports alert escalation where if a job fails a given number of times at a certain alert level, it will automatically be escalated to the next highest alert_code found in the job_status_text table. Set the **escalate** column found in the **job_check_config** table for the job you want escalation on to the number of times a job should cause an alert on each level before being raised to the next. For example, if you want the alert level raised to 3 (CRITICAL by default) after issuing the level 2 (WARNING by default) alert three times, set the escalate value to 3. If you have added any custom alert codes higher than this, it will do the same escalation at each level.
 
 Escalation is not turned on by default and is still slightly experimental at this time. Looking for feedback on this, good or bad. Even just an "It works!" would be appreciated.
+
+
+FURTHER READING
+---------------
+
+The pg_jobmon extension was created based on a series of ad-hoc implementations used on various [OmniTI](https://omniti.com) clients. Once PostgreSQL added the extensions format, this work was standardized into the tool set you see now. The principle developer during that time was Keith Fiske, who blogged about his work, including several articles showing more detailed use of the extension, at (http://www.keithf4.com/tag/pg_jobmon/).   
