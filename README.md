@@ -4,25 +4,28 @@
 pg_jobmon
 =========
 
-pg_jobmon is an extension to add the capability to log the progress of running functions and provide a limited monitoring capability to those logged functions. The logging is done in a NON-TRANSACTIONAL method, so that if your function fails for any reason, all steps up to that point are kept in the log tables. 
-See the pg_jobmon.md file in docs for more details. Also see my blog for some examples and tips: http://www.keithf4.com/tag/pg_jobmon/ 
+pg_jobmon is a PostgreSQL extension designed to add autonomous logging capabilities to transactions and functions. The logging is done in a NON-TRANSACTIONAL method, so that if your function/transaction fails for any reason, any information written to that point will be kept in the log tables rather than rolled back.
+
+For more information on how to use pg_jobmon, please see [pg_jobmon/doc/pg_jobmon.md](doc/pg_jobmon.md)
+
 
 INSTALLATION
 ------------
 
-Requirements: PostgreSQL 9.1+, dblink extension
+Requirements: PostgreSQL 9.2+, [dblink extension](https://www.postgresql.org/docs/current/static/dblink.html)
 
-In directory where you downloaded pg_jobmon to run
+In the directory where you downloaded pg_jobmon run
 
     make
     make install
 
-Log into PostgreSQL and run the following commands. Schema can be whatever you wish, but it cannot be changed after installation.
+Log into PostgreSQL and run the following commands: 
+(Note: You can change the schema name to be whatever you wish, but it cannot be changed after installation.)
 
     CREATE SCHEMA jobmon;
     CREATE EXTENSION pg_jobmon SCHEMA jobmon;
 
-This extension uses dblink to connect back to the same database that pg_jobmon is running on (this is how the non-transactional magic is done). To allow non-superusers to use dblink, you'll need to enter role credentials into the dblink_mapping_jobmon table that pg_jobmon installs.
+This extension uses dblink to connect back to the same database that pg_jobmon is running in (this is how the non-transactional magic is done). To allow non-superusers to use dblink, you'll need to enter role credentials into the dblink_mapping_jobmon table that pg_jobmon installs.
     
     INSERT INTO jobmon.dblink_mapping_jobmon (username, pwd) VALUES ('rolename', 'rolepassword');
 
@@ -31,7 +34,7 @@ Ensure you add the relevant line to the pg_hba.conf file for this role. It will 
     # TYPE  DATABASE       USER            ADDRESS                 METHOD
     local   dbname         rolename                                md5
 
-The following permissions should be given to the above role (substitude relevant schema names as appropriate):
+The following permissions should be given to the above role (substitute relevant schema names as appropriate):
     
     grant usage on schema jobmon to rolename;
     grant usage on schema dblink to rolename;
@@ -39,11 +42,11 @@ The following permissions should be given to the above role (substitude relevant
     grant execute on all functions in schema jobmon to rolename;
     grant all on all sequences in schema jobmon to rolename;
 
-If you're running PostgreSQL on a port other than the default (5432), you can also use the dblink_mapping_jobmon table to change the port that dblink will uses.
+If you're running PostgreSQL on a port other than the default (5432), you can also use the dblink_mapping_jobmon table to change the port that dblink will use.
 
     INSERT INTO jobmon.dblink_mapping_jobmon (port) VALUES ('5999');
 
-Be aware that the dblink_mapping_jobmon table can only have a single row, so if you're using a custom host, role or different port, all can just be entered in the same row. None of the columns is required, so just use the ones you need for your setup.
+Be aware that the dblink_mapping_jobmon table can only have a single row, so if you're using a custom host, role or different port, you will need to enter those values within a single row. None of the columns are required, so just use the ones you need for your setup.
 
     INSERT INTO jobmon.dblink_mapping_jobmon (host,username, pwd, port) VALUES ('host','rolename', 'rolepassword', '5999');
 
@@ -56,20 +59,12 @@ Make sure all the upgrade scripts for the version you have installed up to the m
 
 For detailed change logs of each version, please see the top of each update script.
 
-AUTHOR
-------
-
-Keith Fiske
-OmniTI, Inc - http://www.omniti.com
-keith@omniti.com
-
-
 LICENSE AND COPYRIGHT
 ---------------------
 
-pg_jobmon is released under the PostgreSQL License, a liberal Open Source license, similar to the BSD or MIT licenses.
+pg_jobmon is released under the [PostgreSQL License](https://opensource.org/licenses/PostgreSQL), a liberal Open Source license, similar to the BSD or MIT licenses.
 
-Copyright (c) 2015 OmniTI, Inc.
+Copyright (c) 2015-2018 [OmniTI, Inc.](https://omniti.com)
 
 Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
 
