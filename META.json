@@ -3,7 +3,8 @@
     "abstract": "Job logging and monitoring extension",
     "version": "1.4.0.",
     "maintainer": [ 
-        "Robert Treat <rob@xzilla.net>"
+        "Robert Treat <rob@xzilla.net>",
+        "Keith Fiske <keith@keithf4.com>"
     ],
     "license": "postgresql",
     "generated_by": "Keith Fiske",
