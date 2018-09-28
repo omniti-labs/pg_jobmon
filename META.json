@@ -1,9 +1,10 @@
 {
     "name": "pg_jobmon",
     "abstract": "Job logging and monitoring extension",
-    "version": "1.3.3.",
+    "version": "1.4.0.",
     "maintainer": [ 
-        "Keith Fiske <keith@omniti.com>"
+        "Robert Treat <rob@xzilla.net>",
+        "Keith Fiske <keith@keithf4.com>"
     ],
     "license": "postgresql",
     "generated_by": "Keith Fiske",
@@ -18,9 +19,9 @@
     },
     "provides": {
         "pg_jobmon": {
-            "file": "sql/pg_jobmon--1.3.3..sql",
+            "file": "sql/pg_jobmon--1.4.0..sql",
             "docfile": "doc/pg_jobmon.md",
-            "version": "1.3.3.",
+            "version": "1.4.0.",
             "abstract": "Job logging and monitoring extension"
         }
     },
@@ -49,6 +50,7 @@
         "job monitoring",
         "log",
         "logging",
-        "monitoring"
+        "monitoring",
+        "autonomous transactions"
     ]
 }

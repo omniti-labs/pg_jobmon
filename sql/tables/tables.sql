@@ -57,10 +57,10 @@ SELECT pg_catalog.pg_extension_config_dump('job_check_log', '');
 
 
 CREATE TABLE dblink_mapping_jobmon (
-    host text,
     username text,
     port text,
-    pwd text
+    pwd text,
+    host text
 );
 SELECT pg_catalog.pg_extension_config_dump('dblink_mapping_jobmon', '');
 
