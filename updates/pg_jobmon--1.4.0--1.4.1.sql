@@ -1,25 +1,10 @@
-/*
- *  Add Step Autonomous
- */
-CREATE FUNCTION _autonomous_add_step(p_job_id bigint, p_action text) RETURNS bigint
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    v_step_id bigint;
-BEGIN
-    SELECT nextval('@extschema@.job_detail_step_id_seq') INTO v_step_id;
+-- Fix incorrect data type usage in the add_job() function (Github Issue #14).
 
-    INSERT INTO @extschema@.job_detail (job_id, step_id, action, start_time)
-    VALUES (p_job_id, v_step_id, p_action, current_timestamp);
-
-    RETURN v_step_id;
-END
-$$;
 
 /*
  *  Add Step
  */
-CREATE FUNCTION add_step(p_job_id bigint, p_action text) RETURNS bigint
+CREATE OR REPLACE FUNCTION add_step(p_job_id bigint, p_action text) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE 
