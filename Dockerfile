@@ -38,7 +38,7 @@ RUN git clone https://github.com/omniti-labs/pg_jobmon/
 RUN export PATH=$PATH:$PGBINDIR/bin && cd /home/$PGUSER/pg_jobmon/ && make && make install
 RUN wget -c http://api.pgxn.org/dist/pgtap/1.1.0/pgtap-1.1.0.zip
 RUN unzip pgtap-*
-RUN export PATH=$PATH:$PGBINDIR/bin && cd pgtap-0.98.0 && make && make install
+RUN export PATH=$PATH:$PGBINDIR/bin && cd pgtap-1.1.0 && make && make install
 
 # PGDATA creation and initdb -WITH- data checksums
 
