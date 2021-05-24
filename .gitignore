@@ -1,2 +1,3 @@
 ignore/*
 *.swp
+sql/*.sql

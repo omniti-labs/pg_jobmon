@@ -1,3 +1,7 @@
+1.4.1
+-- Fix incorrect data type usage in the add_job() function (Github Issue #14).
+
+
 1.4.0
 -- New configuration column "host" to provide support for hostaddr configuration in dblink connection. 
 
