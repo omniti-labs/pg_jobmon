@@ -1,7 +1,11 @@
 {
     "name": "pg_jobmon",
     "abstract": "Job logging and monitoring extension",
+<<<<<<< HEAD
     "version": "1.4.1",
+=======
+    "version": "1.4.0",
+>>>>>>> upstream/master
     "maintainer": [ 
         "Robert Treat <rob@xzilla.net>",
         "Keith Fiske <keith@keithf4.com>"
@@ -19,9 +23,15 @@
     },
     "provides": {
         "pg_jobmon": {
+<<<<<<< HEAD
             "file": "sql/pg_jobmon--1.4.1.sql",
             "docfile": "doc/pg_jobmon.md",
             "version": "1.4.1",
+=======
+            "file": "sql/pg_jobmon--1.4.0.sql",
+            "docfile": "doc/pg_jobmon.md",
+            "version": "1.4.0",
+>>>>>>> upstream/master
             "abstract": "Job logging and monitoring extension"
         }
     },
