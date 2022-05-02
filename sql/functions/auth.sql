@@ -40,7 +40,7 @@ BEGIN
     END IF;
 
     IF v_host IS NOT NULL THEN
-        v_auth := v_auth || ' hostaddr='||v_host;
+        v_auth := v_auth || ' host='||v_host;
     END IF;
     RETURN v_auth;    
 END
