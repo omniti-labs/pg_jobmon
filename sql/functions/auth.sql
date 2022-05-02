@@ -11,12 +11,13 @@ DECLARE
     v_password      text; 
     v_username      text;
     v_host          text;
+    v_hostaddr     text;
  
 BEGIN
     -- Ensure only one row is returned. No rows is fine, but this was the only way to force one.
     -- Trigger on table should enforce it as well, but extra check doesn't hurt.
     BEGIN
-        SELECT host, username, port, pwd INTO STRICT v_host, v_username, v_port, v_password FROM @extschema@.dblink_mapping_jobmon;
+        SELECT host, hostaddr, username, port, pwd INTO STRICT v_host, v_hostaddr, v_username, v_port, v_password FROM @extschema@.dblink_mapping_jobmon;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             -- Do nothing
@@ -41,6 +42,10 @@ BEGIN
 
     IF v_host IS NOT NULL THEN
         v_auth := v_auth || ' host='||v_host;
+    END IF;
+
+    IF v_hostaddr IS NOT NULL THEN
+        v_auth := v_auth || ' hostaddr='||v_hostaddr;
     END IF;
     RETURN v_auth;    
 END
