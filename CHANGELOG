@@ -1,6 +1,3 @@
-1.4.2
--- Added support for host names using both host and hostaddr.
-
 1.4.1
 -- Fix incorrect data type usage in the add_job() function (Github Issue #14).
 

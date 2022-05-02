@@ -1,7 +1,7 @@
 {
     "name": "pg_jobmon",
     "abstract": "Job logging and monitoring extension",
-    "version": "1.4.2",
+    "version": "1.4.1",
     "maintainer": [ 
         "Robert Treat <rob@xzilla.net>",
         "Keith Fiske <keith@keithf4.com>"
@@ -21,17 +21,17 @@
         "pg_jobmon": {
             "file": "sql/pg_jobmon--1.4.2.sql",
             "docfile": "doc/pg_jobmon.md",
-            "version": "1.4.2",
+            "version": "1.4.1",
             "abstract": "Job logging and monitoring extension"
         }
     },
     "resources": {
         "bugtracker": {
-            "web": "https://github.com/Dakotah312/pg_jobmon/issues"
+            "web": "https://github.com/omniti-labs/pg_jobmon/issues"
         },
         "repository": {
-            "url": "git://github.com/Dakotah312/pg_jobmon.git" ,
-            "web": "https://github.com/Dakotah312/pg_jobmon",
+            "url": "git://github.com/omniti-labs/pg_jobmon.git" ,
+            "web": "https://github.com/omniti-labs/pg_jobmon",
             "type": "git"
         }
     },    
