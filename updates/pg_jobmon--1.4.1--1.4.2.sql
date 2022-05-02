@@ -1,4 +1,4 @@
--- Fix incorrect data type usage in the add_job() function (Github Issue #14).
+-- Added hostname support.
 ALTER TABLE @extschema@.dblink_mapping_jobmon ADD COLUMN hostaddr text;
 
 CREATE OR REPLACE FUNCTION auth() RETURNS text
