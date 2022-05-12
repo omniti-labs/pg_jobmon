@@ -1,3 +1,7 @@
+1.5.0
+-- Added new configuration column to support host/service names allowing for dynamic ip addresses to be used.
+host and hostaddr reference: https://www.postgresql.org/docs/current/libpq-connect.html#:~:text=key%20words%20are%3A-,host,Unix%2Ddomain%20sockets%2C%20it%20will%20attempt%20to%20connect%20to%20localhost.,-port
+
 1.4.1
 -- Fix incorrect data type usage in the add_job() function (Github Issue #14).
 
