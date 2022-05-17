@@ -11,7 +11,7 @@ DECLARE
     v_password      text; 
     v_username      text;
     v_host          text;
-    v_hostaddr     text;
+    v_hostaddr      text;
  
 BEGIN
     -- Ensure only one row is returned. No rows is fine, but this was the only way to force one.
