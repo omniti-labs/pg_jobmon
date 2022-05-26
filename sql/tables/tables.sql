@@ -60,7 +60,8 @@ CREATE TABLE dblink_mapping_jobmon (
     username text,
     port text,
     pwd text,
-    host text
+    host text,
+    hostaddr text
 );
 SELECT pg_catalog.pg_extension_config_dump('dblink_mapping_jobmon', '');
 
